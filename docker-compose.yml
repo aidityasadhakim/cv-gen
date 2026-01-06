@@ -1,0 +1,68 @@
+services:
+  # ================================
+  # PostgreSQL Database
+  # ================================
+  db:
+    image: postgres:16-alpine
+    container_name: cvgen-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-cvgen}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cvgen_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-cvgen_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-cvgen} -d ${POSTGRES_DB:-cvgen_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ================================
+  # Go Backend (Development)
+  # ================================
+  backend:
+    build:
+      context: ./backend
+      target: dev
+    container_name: cvgen-backend
+    restart: unless-stopped
+    volumes:
+      - ./backend:/app
+      - go_modules:/go/pkg/mod
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgres://cvgen:cvgen_secret@db:5432/cvgen_db?sslmode=disable}
+      BACKEND_PORT: ${BACKEND_PORT:-8080}
+      BACKEND_HOST: ${BACKEND_HOST:-0.0.0.0}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # ================================
+  # React Frontend (Development)
+  # ================================
+  frontend:
+    build:
+      context: ./frontend
+      target: dev
+    container_name: cvgen-frontend
+    restart: unless-stopped
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules  # Anonymous volume to preserve node_modules
+    ports:
+      - "3000:3000"
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:8080}
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+    name: cvgen-postgres-data
+  go_modules:
+    name: cvgen-go-modules
