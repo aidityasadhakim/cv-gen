@@ -6,6 +6,11 @@ import {
   calculateProfileCompletion,
   createEmptyJSONResume,
 } from '../../types/json-resume'
+import { Container } from '../ui/container'
+import { Section } from '../ui/section'
+import { Card } from '../ui/card'
+import { Body, H1 } from '../ui/typography'
+
 import { SectionNav } from './SectionNav'
 import { ProgressIndicator } from './ProgressIndicator'
 import { BasicInfoForm } from './BasicInfoForm'
@@ -22,10 +27,6 @@ import { InterestsForm } from './InterestsForm'
 import { ReferencesForm } from './ReferencesForm'
 import { JsonImportExport } from './JsonImportExport'
 
-import { Container } from '../ui/container'
-import { Section } from '../ui/section'
-import { Card } from '../ui/card'
-import { H1, Body } from '../ui/typography'
 
 import type { ResumeSectionId } from '../../types/json-resume'
 
@@ -117,7 +118,7 @@ export function ProfileLayout() {
           </div>
 
           <div className="flex-1 min-w-0">
-            <Card variant="default">
+            <Card variant="default" className="p-6">
               {renderActiveSection()}
             </Card>
           </div>
