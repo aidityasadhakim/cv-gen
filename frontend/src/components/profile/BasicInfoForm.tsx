@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 
 import { useUpdateProfileSection } from '../../hooks/useProfile'
-import { FormField, FormSection } from './FormComponents'
+import { FormField, FormSection, SaveButton } from './FormComponents'
 
 import type { Basics, Profile as SocialProfile } from '../../types/json-resume'
 
@@ -31,14 +31,12 @@ export function BasicInfoForm({ data }: BasicInfoFormProps) {
   )
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
 
-  // Update form when data changes
   useEffect(() => {
     if (data) {
       setFormData(data)
     }
   }, [data])
 
-  // Debounced save
   const saveData = useCallback(
     async (newData: Basics) => {
       setSaveStatus('saving')
@@ -56,7 +54,6 @@ export function BasicInfoForm({ data }: BasicInfoFormProps) {
     [updateSection]
   )
 
-  // Handle field changes with auto-save
   const handleChange = (field: keyof Basics, value: string | SocialProfile[]) => {
     const newData = { ...formData, [field]: value }
     setFormData(newData)
@@ -98,9 +95,9 @@ export function BasicInfoForm({ data }: BasicInfoFormProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-medium text-gray-900">Basic Information</h2>
+        <h2 className="font-display text-xl font-semibold text-charcoal">Basic Information</h2>
         <SaveButton status={saveStatus} onSave={handleSave} />
       </div>
 
@@ -197,32 +194,31 @@ export function BasicInfoForm({ data }: BasicInfoFormProps) {
           <button
             type="button"
             onClick={handleAddProfile}
-            className="text-sm text-indigo-600 hover:text-indigo-500"
+            className="text-sm text-amber-dark hover:text-amber font-medium"
           >
             + Add Profile
           </button>
         }
       >
         {formData.profiles?.length === 0 ? (
-          <p className="text-sm text-gray-500">
-            No social profiles added yet. Add your LinkedIn, GitHub, Twitter,
-            etc.
+          <p className="text-sm text-mid-gray">
+            No social profiles added yet. Add your LinkedIn, GitHub, Twitter, etc.
           </p>
         ) : (
           <div className="space-y-4">
             {formData.profiles?.map((profile, index) => (
               <div
                 key={index}
-                className="border border-gray-200 rounded-lg p-4"
+                className="border border-border rounded-xl p-5 bg-warm-white"
               >
                 <div className="flex justify-between items-start mb-3">
-                  <span className="text-sm font-medium text-gray-700">
+                  <span className="text-sm font-medium text-charcoal">
                     Profile #{index + 1}
                   </span>
                   <button
                     type="button"
                     onClick={() => handleRemoveProfile(index)}
-                    className="text-red-600 hover:text-red-500 text-sm"
+                    className="text-coral hover:text-coral/80 text-sm"
                   >
                     Remove
                   </button>
@@ -260,48 +256,5 @@ export function BasicInfoForm({ data }: BasicInfoFormProps) {
         )}
       </FormSection>
     </div>
-  )
-}
-
-function SaveButton({
-  status,
-  onSave,
-}: {
-  status: 'idle' | 'saving' | 'saved' | 'error'
-  onSave: () => void
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onSave}
-      disabled={status === 'saving'}
-      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-    >
-      {status === 'saving' && (
-        <svg
-          className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <circle
-            className="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            strokeWidth="4"
-          />
-          <path
-            className="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-          />
-        </svg>
-      )}
-      {status === 'idle' && 'Save'}
-      {status === 'saving' && 'Saving...'}
-      {status === 'saved' && 'Saved!'}
-      {status === 'error' && 'Error - Try Again'}
-    </button>
   )
 }

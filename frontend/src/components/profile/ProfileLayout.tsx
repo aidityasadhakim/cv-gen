@@ -22,6 +22,11 @@ import { InterestsForm } from './InterestsForm'
 import { ReferencesForm } from './ReferencesForm'
 import { JsonImportExport } from './JsonImportExport'
 
+import { Container } from '../ui/container'
+import { Section } from '../ui/section'
+import { Card } from '../ui/card'
+import { H1, Body } from '../ui/typography'
+
 import type { ResumeSectionId } from '../../types/json-resume'
 
 export function ProfileLayout() {
@@ -32,8 +37,8 @@ export function ProfileLayout() {
     return (
       <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading profile...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber mx-auto" />
+          <p className="mt-4 text-mid-gray">Loading profile...</p>
         </div>
       </div>
     )
@@ -43,7 +48,7 @@ export function ProfileLayout() {
     return (
       <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
         <div className="text-center">
-          <p className="text-red-600">Failed to load profile: {error.message}</p>
+          <p className="text-coral">Failed to load profile: {error.message}</p>
         </div>
       </div>
     )
@@ -84,25 +89,24 @@ export function ProfileLayout() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-gray-50">
-      <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between">
+    <Section spacing="lg">
+      <Container maxWidth="xl">
+        <div className="mb-8">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Master Profile</h1>
-              <p className="mt-1 text-sm text-gray-600">
+              <H1 className="text-charcoal">Master Profile</H1>
+              <Body className="mt-2 text-mid-gray">
                 Your complete career information in JSON Resume format
-              </p>
+              </Body>
             </div>
             <JsonImportExport resumeData={resumeData} />
           </div>
-          <ProgressIndicator completion={completion} className="mt-4" />
+          <div className="mt-6">
+            <ProgressIndicator completion={completion} />
+          </div>
         </div>
 
-        {/* Main Content */}
         <div className="flex flex-col lg:flex-row gap-6">
-          {/* Sidebar Navigation */}
           <div className="lg:w-64 flex-shrink-0">
             <SectionNav
               sections={RESUME_SECTIONS}
@@ -112,14 +116,13 @@ export function ProfileLayout() {
             />
           </div>
 
-          {/* Form Content */}
           <div className="flex-1 min-w-0">
-            <div className="bg-white shadow rounded-lg p-6">
+            <Card variant="default">
               {renderActiveSection()}
-            </div>
+            </Card>
           </div>
         </div>
-      </div>
-    </div>
+      </Container>
+    </Section>
   )
 }

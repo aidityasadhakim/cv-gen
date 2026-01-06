@@ -16,7 +16,9 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
   component: () => (
     <>
       <Header />
-      <Outlet />
+      <main className="min-h-screen pt-[80px] bg-warm-white">
+        <Outlet />
+      </main>
       <TanStackDevtools
         config={{
           position: 'bottom-right',

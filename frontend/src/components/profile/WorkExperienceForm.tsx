@@ -9,6 +9,8 @@ import {
   EmptyState,
   TagInput,
 } from './FormComponents'
+import { Button } from '../ui/button'
+import { H2 } from '../ui/typography'
 
 import type { Work } from '../../types/json-resume'
 
@@ -73,9 +75,9 @@ export function WorkExperienceForm({ data }: WorkExperienceFormProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-medium text-gray-900">Work Experience</h2>
+        <H2 className="text-charcoal">Work Experience</H2>
         <SaveButton status={saveStatus} onSave={handleSave} />
       </div>
 
@@ -167,13 +169,9 @@ export function WorkExperienceForm({ data }: WorkExperienceFormProps) {
           <FormSection
             title=""
             action={
-              <button
-                type="button"
-                onClick={handleAdd}
-                className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-              >
+              <Button type="button" variant="secondary" size="sm" onClick={handleAdd}>
                 + Add Another Position
-              </button>
+              </Button>
             }
           >
             <></>

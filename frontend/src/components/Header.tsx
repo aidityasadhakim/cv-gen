@@ -5,63 +5,98 @@ import { useState } from 'react'
 import { Home, Menu, X, LayoutDashboard, LogIn, UserPlus } from 'lucide-react'
 
 import { UserMenu } from './UserMenu'
+import { Button } from './ui/button'
+import { Container } from './ui/container'
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false)
 
   return (
     <>
-      <header className="p-4 flex items-center justify-between bg-gray-800 text-white shadow-lg">
-        <div className="flex items-center">
-          <button
-            onClick={() => setIsOpen(true)}
-            className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
-            aria-label="Open menu"
-          >
-            <Menu size={24} />
-          </button>
-          <h1 className="ml-4 text-xl font-semibold">
-            <Link to="/" className="hover:text-gray-300 transition-colors">
-              CV-Gen
-            </Link>
-          </h1>
-        </div>
+      <header
+        className="fixed top-0 left-0 right-0 z-50 h-[80px] flex items-center"
+        style={{
+          background: 'var(--nav-backdrop)',
+          backdropFilter: 'blur(var(--nav-blur))',
+          WebkitBackdropFilter: 'blur(var(--nav-blur))',
+        }}
+      >
+        <Container maxWidth="2xl" padding={false}>
+          <div className="flex items-center justify-between h-full">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setIsOpen(true)}
+                className="p-2 hover:bg-charcoal/5 rounded-lg transition-colors lg:hidden"
+                aria-label="Open menu"
+              >
+                <Menu size={24} className="text-charcoal" />
+              </button>
+              <Link to="/" className="hover:opacity-80 transition-opacity">
+                <span className="font-display text-xl font-bold text-charcoal">
+                  CV-Gen
+                </span>
+              </Link>
+            </div>
 
-        {/* Right side - Auth */}
-        <div className="flex items-center gap-4">
-          <SignedOut>
-            <Link
-              to="/auth/sign-in"
-              className="text-sm text-gray-300 hover:text-white transition-colors"
-            >
-              Sign in
-            </Link>
-            <Link
-              to="/auth/sign-up"
-              className="text-sm bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded-lg transition-colors"
-            >
-              Get started
-            </Link>
-          </SignedOut>
-          <SignedIn>
-            <UserMenu />
-          </SignedIn>
-        </div>
+            <nav className="hidden lg:flex items-center gap-1">
+              <Link
+                to="/"
+                className="px-4 py-2 text-charcoal hover:text-amber transition-colors font-medium rounded-lg hover:bg-charcoal/5"
+                activeProps={{
+                  className: "text-amber",
+                }}
+              >
+                Home
+              </Link>
+              <SignedIn>
+                <Link
+                  to="/dashboard"
+                  className="px-4 py-2 text-charcoal hover:text-amber transition-colors font-medium rounded-lg hover:bg-charcoal/5"
+                  activeProps={{
+                    className: "text-amber",
+                  }}
+                >
+                  Dashboard
+                </Link>
+              </SignedIn>
+            </nav>
+
+            <div className="flex items-center gap-3">
+              <SignedOut>
+                <Link to="/auth/sign-in">
+                  <Button variant="ghost" size="sm">
+                    Sign in
+                  </Button>
+                </Link>
+                <Link to="/auth/sign-up">
+                  <Button size="sm">
+                    Get started
+                  </Button>
+                </Link>
+              </SignedOut>
+              <SignedIn>
+                <UserMenu />
+              </SignedIn>
+            </div>
+          </div>
+        </Container>
       </header>
 
       <aside
-        className={`fixed top-0 left-0 h-full w-80 bg-gray-900 text-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${
+        className={`fixed top-0 left-0 h-full w-80 bg-warm-white shadow-dramatic z-50 transform transition-transform duration-300 ease-smooth flex flex-col ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="flex items-center justify-between p-4 border-b border-gray-700">
-          <h2 className="text-xl font-bold">Navigation</h2>
+        <div className="flex items-center justify-between p-6 border-b border-border">
+          <span className="font-display text-lg font-bold text-charcoal">
+            Navigation
+          </span>
           <button
             onClick={() => setIsOpen(false)}
-            className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
+            className="p-2 hover:bg-charcoal/5 rounded-lg transition-colors"
             aria-label="Close menu"
           >
-            <X size={24} />
+            <X size={24} className="text-charcoal" />
           </button>
         </div>
 
@@ -69,65 +104,56 @@ export default function Header() {
           <Link
             to="/"
             onClick={() => setIsOpen(false)}
-            className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors mb-2"
+            className="flex items-center gap-3 p-3 rounded-lg hover:bg-charcoal/5 transition-colors mb-2"
             activeProps={{
-              className:
-                'flex items-center gap-3 p-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors mb-2',
+              className: "flex items-center gap-3 p-3 rounded-lg bg-amber/10 text-amber-dark font-medium",
             }}
           >
             <Home size={20} />
-            <span className="font-medium">Home</span>
+            <span>Home</span>
           </Link>
 
           <SignedIn>
             <Link
               to="/dashboard"
               onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors mb-2"
+              className="flex items-center gap-3 p-3 rounded-lg hover:bg-charcoal/5 transition-colors mb-2"
               activeProps={{
-                className:
-                  'flex items-center gap-3 p-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors mb-2',
+                className: "flex items-center gap-3 p-3 rounded-lg bg-amber/10 text-amber-dark font-medium",
               }}
             >
               <LayoutDashboard size={20} />
-              <span className="font-medium">Dashboard</span>
+              <span>Dashboard</span>
             </Link>
           </SignedIn>
 
           <SignedOut>
-            <Link
-              to="/auth/sign-in"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors mb-2"
-              activeProps={{
-                className:
-                  'flex items-center gap-3 p-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors mb-2',
-              }}
-            >
-              <LogIn size={20} />
-              <span className="font-medium">Sign In</span>
-            </Link>
+            <div className="pt-4 border-t border-border mt-4">
+              <Link
+                to="/auth/sign-in"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center gap-3 p-3 rounded-lg hover:bg-charcoal/5 transition-colors mb-2"
+              >
+                <LogIn size={20} />
+                <span>Sign In</span>
+              </Link>
 
-            <Link
-              to="/auth/sign-up"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors mb-2"
-              activeProps={{
-                className:
-                  'flex items-center gap-3 p-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors mb-2',
-              }}
-            >
-              <UserPlus size={20} />
-              <span className="font-medium">Sign Up</span>
-            </Link>
+              <Link
+                to="/auth/sign-up"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center gap-3 p-3 rounded-lg bg-amber text-charcoal font-semibold hover:bg-amber-dark transition-colors"
+              >
+                <UserPlus size={20} />
+                <span>Sign Up</span>
+              </Link>
+            </div>
           </SignedOut>
         </nav>
       </aside>
 
-      {/* Overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40"
+          className="fixed inset-0 bg-charcoal/40 z-40 backdrop-blur-sm"
           onClick={() => setIsOpen(false)}
         />
       )}

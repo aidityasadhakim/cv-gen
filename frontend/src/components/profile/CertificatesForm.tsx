@@ -8,6 +8,8 @@ import {
   SaveButton,
   EmptyState,
 } from './FormComponents'
+import { Button } from '../ui/button'
+import { H2 } from '../ui/typography'
 
 import type { Certificate } from '../../types/json-resume'
 
@@ -72,9 +74,9 @@ export function CertificatesForm({ data }: CertificatesFormProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-medium text-gray-900">Certificates</h2>
+        <H2 className="text-charcoal">Certificates</H2>
         <SaveButton status={saveStatus} onSave={handleSave} />
       </div>
 
@@ -127,13 +129,9 @@ export function CertificatesForm({ data }: CertificatesFormProps) {
           <FormSection
             title=""
             action={
-              <button
-                type="button"
-                onClick={handleAdd}
-                className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-              >
+              <Button type="button" variant="secondary" size="sm" onClick={handleAdd}>
                 + Add Another Certificate
-              </button>
+              </Button>
             }
           >
             <></>

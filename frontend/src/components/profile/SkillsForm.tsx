@@ -9,6 +9,9 @@ import {
   EmptyState,
   TagInput,
 } from './FormComponents'
+import { Button } from '../ui/button'
+import { H2 } from '../ui/typography'
+import { Label } from '../ui/label'
 
 import type { Skill } from '../../types/json-resume'
 
@@ -70,9 +73,9 @@ export function SkillsForm({ data }: SkillsFormProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-medium text-gray-900">Skills</h2>
+        <H2 className="text-charcoal">Skills</H2>
         <SaveButton status={saveStatus} onSave={handleSave} />
       </div>
 
@@ -101,15 +104,13 @@ export function SkillsForm({ data }: SkillsFormProps) {
                     placeholder="Web Development"
                   />
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      Proficiency Level
-                    </label>
+                    <Label>Proficiency Level</Label>
                     <select
                       value={skill.level ?? ''}
                       onChange={(e) =>
                         handleChange(index, 'level', e.target.value)
                       }
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                      className="flex h-11 w-full rounded-lg border-2 border-border bg-warm-white px-4 py-3 text-base text-charcoal transition-all duration-200 focus:border-amber focus:outline-none focus:ring-2 focus:ring-amber/20 mt-1"
                     >
                       <option value="">Select level</option>
                       {SKILL_LEVELS.map((level) => (
@@ -133,13 +134,9 @@ export function SkillsForm({ data }: SkillsFormProps) {
           <FormSection
             title=""
             action={
-              <button
-                type="button"
-                onClick={handleAdd}
-                className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-              >
+              <Button type="button" variant="secondary" size="sm" onClick={handleAdd}>
                 + Add Another Skill
-              </button>
+              </Button>
             }
           >
             <></>

@@ -1,6 +1,11 @@
 import { cn } from '../../lib/utils'
 
 import type { InputHTMLAttributes, TextareaHTMLAttributes, ReactNode } from 'react'
+import { Input } from '../ui/input'
+import { Textarea } from '../ui/textarea'
+import { Label } from '../ui/label'
+import { Button } from '../ui/button'
+import { Badge } from '../ui/badge'
 
 interface FormFieldProps
   extends Omit<InputHTMLAttributes<HTMLInputElement>, 'className'> {
@@ -22,37 +27,28 @@ export function FormField({
   ...props
 }: FormFieldProps & TextareaHTMLAttributes<HTMLTextAreaElement>) {
   const inputId = props.id ?? label.toLowerCase().replace(/\s+/g, '-')
-  const inputClasses = cn(
-    'mt-1 block w-full rounded-md shadow-sm sm:text-sm',
-    error
-      ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
-      : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
-  )
 
   return (
     <div className={className}>
-      <label
-        htmlFor={inputId}
-        className="block text-sm font-medium text-gray-700"
-      >
+      <Label htmlFor={inputId}>
         {label}
-        {required && <span className="text-red-500 ml-1">*</span>}
-      </label>
+        {required && <span className="text-coral ml-1">*</span>}
+      </Label>
       {as === 'textarea' ? (
-        <textarea
+        <Textarea
           id={inputId}
           rows={rows}
-          className={inputClasses}
+          className={cn(error && 'border-coral focus:border-coral focus:ring-coral/20')}
           {...(props as TextareaHTMLAttributes<HTMLTextAreaElement>)}
         />
       ) : (
-        <input
+        <Input
           id={inputId}
-          className={inputClasses}
+          className={cn(error && 'border-coral focus:border-coral focus:ring-coral/20')}
           {...(props as InputHTMLAttributes<HTMLInputElement>)}
         />
       )}
-      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-1 text-sm text-coral">{error}</p>}
     </div>
   )
 }
@@ -71,12 +67,12 @@ export function FormSection({
   children,
 }: FormSectionProps) {
   return (
-    <div className="border-t border-gray-200 pt-6 first:border-t-0 first:pt-0">
-      <div className="flex items-center justify-between mb-4">
+    <div className="border-t border-border pt-6 first:border-t-0 first:pt-0">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h3 className="text-base font-medium text-gray-900">{title}</h3>
+          <h3 className="font-display text-lg font-semibold text-charcoal">{title}</h3>
           {description && (
-            <p className="mt-1 text-sm text-gray-500">{description}</p>
+            <p className="mt-1 text-sm text-mid-gray">{description}</p>
           )}
         </div>
         {action}
@@ -100,18 +96,20 @@ export function ListItemForm({
   children,
 }: ListItemFormProps) {
   return (
-    <div className="border border-gray-200 rounded-lg p-4">
-      <div className="flex justify-between items-start mb-4">
-        <h4 className="text-sm font-medium text-gray-700">
+    <div className="border border-border rounded-xl p-5 bg-warm-white">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+        <h4 className="text-sm font-medium text-charcoal">
           {title} #{index + 1}
         </h4>
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="sm"
           onClick={onRemove}
-          className="text-red-600 hover:text-red-500 text-sm"
+          className="text-coral hover:text-coral hover:bg-coral/10 w-fit"
         >
           Remove
-        </button>
+        </Button>
       </div>
       {children}
     </div>
@@ -125,15 +123,15 @@ interface SaveButtonProps {
 
 export function SaveButton({ status, onSave }: SaveButtonProps) {
   return (
-    <button
+    <Button
       type="button"
       onClick={onSave}
       disabled={status === 'saving'}
-      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+      className="min-w-[100px]"
     >
       {status === 'saving' && (
         <svg
-          className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+          className="animate-spin -ml-1 mr-2 h-4 w-4"
           fill="none"
           viewBox="0 0 24 24"
         >
@@ -155,8 +153,8 @@ export function SaveButton({ status, onSave }: SaveButtonProps) {
       {status === 'idle' && 'Save'}
       {status === 'saving' && 'Saving...'}
       {status === 'saved' && 'Saved!'}
-      {status === 'error' && 'Error - Try Again'}
-    </button>
+      {status === 'error' && 'Error'}
+    </Button>
   )
 }
 
@@ -174,16 +172,16 @@ export function EmptyState({
   onAction,
 }: EmptyStateProps) {
   return (
-    <div className="text-center py-6">
-      <p className="text-sm font-medium text-gray-900">{title}</p>
-      <p className="mt-1 text-sm text-gray-500">{description}</p>
-      <button
+    <div className="text-center py-12 px-4">
+      <p className="font-medium text-charcoal">{title}</p>
+      <p className="mt-2 text-sm text-mid-gray">{description}</p>
+      <Button
         type="button"
         onClick={onAction}
-        className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700"
+        className="mt-6"
       >
         {actionLabel}
-      </button>
+      </Button>
     </div>
   )
 }
@@ -219,33 +217,29 @@ export function TagInput({
 
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700">{label}</label>
-      <div className="mt-1">
+      <Label>{label}</Label>
+      <div className="mt-2">
         {value.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-2">
+          <div className="flex flex-wrap gap-2 mb-3">
             {value.map((tag, index) => (
-              <span
-                key={index}
-                className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800"
-              >
+              <Badge key={index} variant="default">
                 {tag}
                 <button
                   type="button"
                   onClick={() => handleRemove(index)}
-                  className="ml-1.5 inline-flex items-center justify-center w-4 h-4 rounded-full text-indigo-400 hover:bg-indigo-200 hover:text-indigo-500"
+                  className="ml-1.5 inline-flex items-center justify-center w-4 h-4 rounded-full hover:bg-amber/30"
                 >
                   <span className="sr-only">Remove {tag}</span>
-                  <svg className="w-2 h-2" fill="currentColor" viewBox="0 0 8 8">
+                  <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 8 8">
                     <path d="M1.41 0L0 1.41l2.59 2.59L0 6.59 1.41 8l2.59-2.59L6.59 8 8 6.59 5.41 4 8 1.41 6.59 0 4 2.59 1.41 0z" />
                   </svg>
                 </button>
-              </span>
+              </Badge>
             ))}
           </div>
         )}
-        <input
+        <Input
           type="text"
-          className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           placeholder={placeholder}
           onKeyDown={handleKeyDown}
         />
