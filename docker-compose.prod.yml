@@ -1,0 +1,82 @@
+services:
+  # ================================
+  # PostgreSQL Database (Production)
+  # ================================
+  db:
+    image: postgres:16-alpine
+    container_name: cvgen-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-cvgen}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cvgen_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-cvgen_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-cvgen} -d ${POSTGRES_DB:-cvgen_db}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: json-file
+      options:
+        max-size: 50m
+        max-file: "3"
+
+  # ================================
+  # Go Backend (Production)
+  # ================================
+  backend:
+    build:
+      context: ./backend
+      target: production
+    container_name: cvgen-backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      BACKEND_PORT: ${BACKEND_PORT:-8080}
+      BACKEND_HOST: ${BACKEND_HOST:-0.0.0.0}
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+    depends_on:
+      db:
+        condition: service_healthy
+    logging:
+      driver: json-file
+      options:
+        max-size: 50m
+        max-file: "3"
+
+  # ================================
+  # React Frontend (Production)
+  # ================================
+  frontend:
+    build:
+      context: ./frontend
+      target: production
+    container_name: cvgen-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      VITE_API_URL: ${VITE_API_URL}
+      VITE_CLERK_PUBLISHABLE_KEY: ${VITE_CLERK_PUBLISHABLE_KEY}
+    depends_on:
+      - backend
+    logging:
+      driver: json-file
+      options:
+        max-size: 50m
+        max-file: "3"
+
+volumes:
+  postgres_data:
+    name: cvgen-postgres-data
