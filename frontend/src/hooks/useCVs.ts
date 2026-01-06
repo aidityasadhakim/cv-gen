@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiKeys, useApiClient } from '../lib/api'
 
 import type { JSONResume } from '../types/json-resume'
+import type { JobAnalysis } from '../types/ai'
 
 /**
  * CV response from API
@@ -18,6 +19,7 @@ export interface CVResponse {
   job_description?: string
   company_name?: string
   match_score?: number
+  ai_suggestions?: JobAnalysis
   created_at: string
   updated_at: string
 }

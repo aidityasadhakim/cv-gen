@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { Link, createFileRoute } from '@tanstack/react-router'
 import { useUser } from '@clerk/clerk-react'
 import { useState } from 'react'
 
@@ -9,7 +9,7 @@ import { CoverLetterList } from '../../components/cover-letter/CoverLetterList'
 import { Container } from '../../components/ui/container'
 import { Section } from '../../components/ui/section'
 import { Card } from '../../components/ui/card'
-import { H1, H2, Body, Small } from '../../components/ui/typography'
+import { Body, H1, H2, Small } from '../../components/ui/typography'
 import { cn } from '../../lib/utils'
 
 export const Route = createFileRoute('/dashboard/')({
@@ -86,25 +86,6 @@ function DashboardContent() {
                 </div>
               </Card>
             </Link>
-
-            <Card
-              variant="default"
-              className="p-6 hover:shadow-medium transition-all duration-300"
-            >
-              <div className="flex items-center space-x-4">
-                <div className="flex-shrink-0">
-                  <div className="h-12 w-12 rounded-xl bg-purple/10 flex items-center justify-center">
-                    <svg className="h-6 w-6 text-purple" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                  </div>
-                </div>
-                <div className="min-w-0 flex-1">
-                  <Body className="font-semibold text-charcoal">My Documents</Body>
-                  <Small className="text-mid-gray">View and edit your CVs and cover letters</Small>
-                </div>
-              </div>
-            </Card>
           </div>
         </div>
 

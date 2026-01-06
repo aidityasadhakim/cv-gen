@@ -148,19 +148,19 @@ function HomePage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             <div>
               <H2 className="text-amber mb-1">50K+</H2>
-              <Small className="text-warm-white/70">CVs Generated</Small>
+              <Small className="text-warm-white/70">CVs Generated(boong)</Small>
             </div>
             <div>
               <H2 className="text-amber mb-1">89%</H2>
-              <Small className="text-warm-white/70">Interview Rate</Small>
+              <Small className="text-warm-white/70">Interview Rate(boong)</Small>
             </div>
             <div>
               <H2 className="text-amber mb-1">30s</H2>
-              <Small className="text-warm-white/70">Average Generation</Small>
+              <Small className="text-warm-white/70">Average Generation(boong, tpi dikit)</Small>
             </div>
             <div>
               <H2 className="text-amber mb-1">4.9/5</H2>
-              <Small className="text-warm-white/70">User Rating</Small>
+              <Small className="text-warm-white/70">User Rating(boong)</Small>
             </div>
           </div>
         </Container>
@@ -214,7 +214,7 @@ function HomePage() {
                     2
                   </div>
                 </div>
-                <H3 className="text-charcoal mb-3">Paste the Job URL</H3>
+                <H3 className="text-charcoal mb-3">Paste the Job Description</H3>
                 <Body className="text-mid-gray">
                   Our AI analyzes the job posting to understand exactly what the
                   employer is looking for.
@@ -363,7 +363,7 @@ function HomePage() {
         <Container maxWidth="lg">
           <div className="text-center mb-16">
             <Caption className="text-amber mb-3 block">Success Stories</Caption>
-            <H1 className="text-charcoal mb-4">Loved by Job Seekers</H1>
+            <H1 className="text-charcoal mb-4">Loved by Job Seekers(boong)</H1>
             <Body className="text-mid-gray mx-auto">
               Join thousands who've landed their dream jobs with CV-Gen.
             </Body>

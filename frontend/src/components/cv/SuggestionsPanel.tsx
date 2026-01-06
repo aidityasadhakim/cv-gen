@@ -1,10 +1,10 @@
 import { Badge } from '../ui/badge'
-import { H3, Body } from '../ui/typography'
+import { Body, H3 } from '../ui/typography'
 
 interface SuggestionsPanelProps {
-  suggestions: string[]
-  keywords: string[]
-  relevantExperiences?: string[]
+  suggestions: Array<string>
+  keywords: Array<string>
+  relevantExperiences?: Array<string>
   className?: string
 }
 

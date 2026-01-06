@@ -5,6 +5,9 @@ import { ProtectedRoute } from '../../../components/ProtectedRoute'
 import { ThemeRenderer } from '../../../components/cv/ThemeRenderer'
 import { TemplateSelector } from '../../../components/cv/TemplateSelector'
 import { GenerateCoverLetterModal } from '../../../components/cover-letter/GenerateCoverLetterModal'
+import { SuggestionsPanel } from '../../../components/cv/SuggestionsPanel'
+import { MatchScore } from '../../../components/cv/MatchScore'
+import { SkillsAnalysis } from '../../../components/cv/SkillsAnalysis'
 import { Card } from '../../../components/ui/card'
 import { Button } from '../../../components/ui/button'
 import { Input } from '../../../components/ui/input'
@@ -42,8 +45,10 @@ function CVEditorContent({ cvId }: { cvId: string }) {
   const [hiddenSections, setHiddenSections] = useState<Set<ResumeSectionId>>(new Set())
   const [showCoverLetterModal, setShowCoverLetterModal] = useState(false)
   const [showMobileSidebar, setShowMobileSidebar] = useState(false)
+  const [showAISuggestionsModal, setShowAISuggestionsModal] = useState(false)
   const printRef = useRef<HTMLDivElement>(null)
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  console.log(cv?.ai_suggestions)
 
   // Close mobile sidebar with Escape key
   useEscapeKey(() => setShowMobileSidebar(false), showMobileSidebar)
@@ -243,6 +248,31 @@ function CVEditorContent({ cvId }: { cvId: string }) {
                   />
                 </svg>
               </Button>
+              {/* AI Suggestions button - only show if CV has AI suggestions */}
+              {cv.ai_suggestions && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowAISuggestionsModal(true)}
+                  className="hidden sm:flex"
+                  title="View AI Suggestions"
+                >
+                  <svg
+                    className="w-4 h-4 mr-2 text-amber"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
+                    />
+                  </svg>
+                  AI Suggestions
+                </Button>
+              )}
               <Button
                 variant="secondary"
                 size="sm"
@@ -402,6 +432,33 @@ function CVEditorContent({ cvId }: { cvId: string }) {
               </button>
             </div>
             <div className="p-4 space-y-4">
+              {/* AI Suggestions Button (mobile) - only show if CV has AI suggestions */}
+              {cv.ai_suggestions && (
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start border border-amber/30 bg-amber/5"
+                  onClick={() => {
+                    setShowMobileSidebar(false)
+                    setShowAISuggestionsModal(true)
+                  }}
+                >
+                  <svg
+                    className="w-4 h-4 mr-2 text-amber"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
+                    />
+                  </svg>
+                  View AI Suggestions
+                </Button>
+              )}
+
               {/* Cover Letter Button (mobile) */}
               <Button
                 variant="secondary"
@@ -454,7 +511,7 @@ function CVEditorContent({ cvId }: { cvId: string }) {
                         onClick={() => handleToggleSection(section.id)}
                         disabled={!hasContent}
                         className={cn(
-                          'w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors',
+                          'w-full flex items-center justify-between px-3 py-2 rounded-lg text-md transition-colors',
                           hasContent
                             ? isHidden
                               ? 'bg-gray-100 text-mid-gray'
@@ -536,6 +593,79 @@ function CVEditorContent({ cvId }: { cvId: string }) {
           navigate({ to: '/cover-letter/$id', params: { id: coverLetterId } })
         }}
       />
+
+      {/* AI Suggestions Modal */}
+      {showAISuggestionsModal && cv.ai_suggestions && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setShowAISuggestionsModal(false)}
+          />
+          <div className="relative bg-white rounded-xl shadow-elevated w-full max-h-[90vh] overflow-hidden">
+            <div className="sticky top-0 flex items-center justify-between p-4 bg-white border-b">
+              <div className="flex items-center gap-2">
+                <svg
+                  className="w-5 h-5 text-amber"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
+                  />
+                </svg>
+                <H2 className="text-charcoal">AI Suggestions</H2>
+              </div>
+              <button
+                onClick={() => setShowAISuggestionsModal(false)}
+                className="p-2 hover:bg-gray-100 rounded-lg"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
+              {/* Match Score */}
+              {cv.ai_suggestions.match_score > 0 && (
+                <div className="mb-6 flex items-center gap-4">
+                  <MatchScore score={cv.ai_suggestions.match_score} size="md" />
+                  <div>
+                    <Body className="text-charcoal font-medium">
+                      {cv.job_title || 'Job'} Match
+                      {cv.company_name && ` at ${cv.company_name}`}
+                    </Body>
+                    <Small className="text-mid-gray">
+                      Based on your profile analysis
+                    </Small>
+                  </div>
+                </div>
+              )}
+
+              {/* Skills Analysis */}
+              {(cv.ai_suggestions.matching_skills.length > 0 ||
+                cv.ai_suggestions.missing_skills.length > 0) && (
+                  <div className="mb-6">
+                    <SkillsAnalysis
+                      matchingSkills={cv.ai_suggestions.matching_skills}
+                      missingSkills={cv.ai_suggestions.missing_skills}
+                    />
+                  </div>
+                )}
+
+              {/* Suggestions Panel */}
+              <SuggestionsPanel
+                suggestions={cv.ai_suggestions.suggestions}
+                keywords={cv.ai_suggestions.keywords_to_include}
+                relevantExperiences={cv.ai_suggestions.relevant_experiences}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

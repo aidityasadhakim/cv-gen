@@ -48,8 +48,19 @@ type CVResponse struct {
 	CompanyName    string             `json:"company_name,omitempty"`
 	JobDescription string             `json:"job_description,omitempty"`
 	MatchScore     *int               `json:"match_score,omitempty"`
+	AISuggestions  *AISuggestions     `json:"ai_suggestions,omitempty"`
 	CreatedAt      string             `json:"created_at"`
 	UpdatedAt      string             `json:"updated_at"`
+}
+
+// AISuggestions represents the AI analysis suggestions stored with a CV
+type AISuggestions struct {
+	MatchScore          int      `json:"match_score"`
+	MatchingSkills      []string `json:"matching_skills"`
+	MissingSkills       []string `json:"missing_skills"`
+	RelevantExperiences []string `json:"relevant_experiences"`
+	Suggestions         []string `json:"suggestions"`
+	KeywordsToInclude   []string `json:"keywords_to_include"`
 }
 
 // CVListItem represents a CV in list responses (without full cv_data)
@@ -349,6 +360,17 @@ func cvToResponse(cv db.GeneratedCv) (*CVResponse, error) {
 	if cv.MatchScore.Valid {
 		score := int(cv.MatchScore.Int32)
 		resp.MatchScore = &score
+	}
+
+	// Parse AI suggestions if available
+	if len(cv.AiSuggestions) > 0 && string(cv.AiSuggestions) != "[]" {
+		var aiSuggestions AISuggestions
+		if err := json.Unmarshal(cv.AiSuggestions, &aiSuggestions); err == nil {
+			// Only include if there's meaningful data
+			if aiSuggestions.MatchScore > 0 || len(aiSuggestions.Suggestions) > 0 {
+				resp.AISuggestions = &aiSuggestions
+			}
+		}
 	}
 
 	return resp, nil
