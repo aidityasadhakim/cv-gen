@@ -1,11 +1,11 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { Link, createFileRoute } from '@tanstack/react-router'
 import { SignedIn, SignedOut } from '@clerk/clerk-react'
 
 import { Container } from '../components/ui/container'
 import { Section } from '../components/ui/section'
 import { Button } from '../components/ui/button'
 import { Card } from '../components/ui/card'
-import { Hero, H2, H3, Body, Small } from '../components/ui/typography'
+import { Body, H2, H3, Hero, Small } from '../components/ui/typography'
 
 export const Route = createFileRoute('/')({
   component: HomePage,
@@ -16,8 +16,8 @@ function HomePage() {
     <div>
       <Section variant="warmFade">
         <Container maxWidth="xl">
-          <div className="text-center max-w-6xl mx-auto">
-            <Hero className="text-charcoal">
+          <div className="text-center w-full">
+            <Hero className="text-charcoal w-full">
               Create AI-Powered CVs
               <span className="text-gradient block mt-2">
                 Tailored to Your Dream Job
