@@ -145,7 +145,6 @@ export function JsonImportExport({ resumeData }: JsonImportExportProps) {
         isOpen={isImportOpen}
         onClose={handleClose}
         title="Import JSON Resume"
-        size="lg"
       >
         <div className="space-y-4">
           <div>

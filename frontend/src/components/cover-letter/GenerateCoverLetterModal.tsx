@@ -74,7 +74,6 @@ export function GenerateCoverLetterModal({
       isOpen={isOpen}
       onClose={onClose}
       title="Generate Cover Letter"
-      size="lg"
     >
       <Body className="text-mid-gray mb-6">
         Generate a professional cover letter tailored to this job using AI.
