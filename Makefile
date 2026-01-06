@@ -106,7 +106,11 @@ shell-frontend:
 
 ## Check service status
 status:
-	docker compose ps
+	docker comp
+
+## Install frontend dependencies (after adding new packages)
+frontend-install:
+	docker compose exec frontend bun install
 
 # ================================
 # Help

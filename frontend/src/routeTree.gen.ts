@@ -10,11 +10,19 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo/tanstack-query'
+import { Route as AuthSignUpRouteImport } from './routes/auth/sign-up'
+import { Route as AuthSignInRouteImport } from './routes/auth/sign-in'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardIndexRoute = DashboardIndexRouteImport.update({
+  id: '/dashboard/',
+  path: '/dashboard/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DemoTanstackQueryRoute = DemoTanstackQueryRouteImport.update({
@@ -22,31 +30,69 @@ const DemoTanstackQueryRoute = DemoTanstackQueryRouteImport.update({
   path: '/demo/tanstack-query',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthSignUpRoute = AuthSignUpRouteImport.update({
+  id: '/auth/sign-up',
+  path: '/auth/sign-up',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthSignInRoute = AuthSignInRouteImport.update({
+  id: '/auth/sign-in',
+  path: '/auth/sign-in',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth/sign-in': typeof AuthSignInRoute
+  '/auth/sign-up': typeof AuthSignUpRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/dashboard': typeof DashboardIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth/sign-in': typeof AuthSignInRoute
+  '/auth/sign-up': typeof AuthSignUpRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/dashboard': typeof DashboardIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/auth/sign-in': typeof AuthSignInRoute
+  '/auth/sign-up': typeof AuthSignUpRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/dashboard/': typeof DashboardIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/demo/tanstack-query'
+  fullPaths:
+    | '/'
+    | '/auth/sign-in'
+    | '/auth/sign-up'
+    | '/demo/tanstack-query'
+    | '/dashboard'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/demo/tanstack-query'
-  id: '__root__' | '/' | '/demo/tanstack-query'
+  to:
+    | '/'
+    | '/auth/sign-in'
+    | '/auth/sign-up'
+    | '/demo/tanstack-query'
+    | '/dashboard'
+  id:
+    | '__root__'
+    | '/'
+    | '/auth/sign-in'
+    | '/auth/sign-up'
+    | '/demo/tanstack-query'
+    | '/dashboard/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthSignInRoute: typeof AuthSignInRoute
+  AuthSignUpRoute: typeof AuthSignUpRoute
   DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
+  DashboardIndexRoute: typeof DashboardIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -58,6 +104,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard/': {
+      id: '/dashboard/'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/demo/tanstack-query': {
       id: '/demo/tanstack-query'
       path: '/demo/tanstack-query'
@@ -65,12 +118,29 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DemoTanstackQueryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth/sign-up': {
+      id: '/auth/sign-up'
+      path: '/auth/sign-up'
+      fullPath: '/auth/sign-up'
+      preLoaderRoute: typeof AuthSignUpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/sign-in': {
+      id: '/auth/sign-in'
+      path: '/auth/sign-in'
+      fullPath: '/auth/sign-in'
+      preLoaderRoute: typeof AuthSignInRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthSignInRoute: AuthSignInRoute,
+  AuthSignUpRoute: AuthSignUpRoute,
   DemoTanstackQueryRoute: DemoTanstackQueryRoute,
+  DashboardIndexRoute: DashboardIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
