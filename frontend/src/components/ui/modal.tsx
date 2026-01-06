@@ -16,15 +16,6 @@ interface ModalProps {
   showCloseButton?: boolean
   closeOnEscape?: boolean
   closeOnOverlayClick?: boolean
-  size?: 'sm' | 'md' | 'lg' | 'xl' | 'full'
-}
-
-const sizeClasses = {
-  sm: 'max-w-sm',
-  md: 'max-w-md',
-  lg: 'max-w-lg',
-  xl: 'max-w-xl',
-  full: 'max-w-4xl',
 }
 
 export function Modal({
@@ -36,7 +27,6 @@ export function Modal({
   showCloseButton = true,
   closeOnEscape = true,
   closeOnOverlayClick = true,
-  size = 'lg',
 }: ModalProps) {
   const modalRef = useRef<HTMLDivElement>(null)
   const previousActiveElement = useRef<HTMLElement | null>(null)
@@ -234,7 +224,7 @@ export function ConfirmModal({
   }, [isOpen, isLoading])
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={title} size="sm">
+    <Modal isOpen={isOpen} onClose={onClose} title={title}>
       <p className="text-mid-gray">{message}</p>
       <ModalFooter>
         <Button type="button" variant="ghost" onClick={onClose} disabled={isLoading}>

@@ -12,8 +12,8 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-cvgen_db}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+    # Port 5432 is not exposed to host for security
+    # Only accessible within Docker network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-cvgen} -d ${POSTGRES_DB:-cvgen_db}"]
       interval: 10s
@@ -34,8 +34,8 @@ services:
       target: prod
     container_name: cvgen-backend
     restart: unless-stopped
-    ports:
-      - "8080:8080"
+    # Port 8080 is not exposed to host
+    # Nginx proxies requests to this service
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgres://cvgen:cvgen_secret@db:5432/cvgen_db?sslmode=disable}
       BACKEND_PORT: ${BACKEND_PORT:-8080}
@@ -85,7 +85,7 @@ services:
     volumes:
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
-    command: certonly --webroot --webroot-path=/var/www/certbot --email aidityas@gmail.com --agree-tos --no-eff-email -d cv.aidityas.me
+    command: certonly --webroot --webroot-path=/var/www/certbot --email ${SSL_EMAIL} --agree-tos --no-eff-email -d ${DOMAIN_NAME}
 
 volumes:
   postgres_data:
