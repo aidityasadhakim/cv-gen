@@ -34,21 +34,39 @@ DELETE FROM master_profiles WHERE user_id = $1;
 SELECT * FROM user_credits WHERE user_id = $1 LIMIT 1;
 
 -- name: CreateUserCredits :one
-INSERT INTO user_credits (user_id, free_generations_used, free_generations_limit)
-VALUES ($1, 0, 10)
+INSERT INTO user_credits (user_id, free_generations_used, free_generations_limit, paid_credits, total_generations)
+VALUES ($1, 0, 10, 0, 0)
 RETURNING *;
 
 -- name: IncrementCreditsUsed :one
+-- Increments total_generations, uses free credits first, then paid credits
 UPDATE user_credits
-SET free_generations_used = free_generations_used + 1, updated_at = NOW()
+SET 
+    total_generations = total_generations + 1,
+    free_generations_used = CASE 
+        WHEN free_generations_used < free_generations_limit THEN free_generations_used + 1
+        ELSE free_generations_used
+    END,
+    paid_credits = CASE 
+        WHEN free_generations_used >= free_generations_limit THEN paid_credits - 1
+        ELSE paid_credits
+    END,
+    updated_at = NOW()
 WHERE user_id = $1
 RETURNING *;
 
 -- name: GetOrCreateUserCredits :one
-INSERT INTO user_credits (user_id, free_generations_used, free_generations_limit)
-VALUES ($1, 0, 10)
+INSERT INTO user_credits (user_id, free_generations_used, free_generations_limit, paid_credits, total_generations)
+VALUES ($1, 0, 10, 0, 0)
 ON CONFLICT (user_id) DO UPDATE
 SET updated_at = NOW()
+RETURNING *;
+
+-- name: AddPaidCredits :one
+-- Add purchased credits to user's balance
+UPDATE user_credits
+SET paid_credits = paid_credits + $2, updated_at = NOW()
+WHERE user_id = $1
 RETURNING *;
 
 -- ===================

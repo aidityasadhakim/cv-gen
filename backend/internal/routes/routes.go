@@ -9,7 +9,7 @@ import (
 )
 
 // Register registers all routes with the Echo instance
-func Register(e *echo.Echo, h *handlers.Handler) {
+func Register(e *echo.Echo, h *handlers.Handler, aiHandler *handlers.AIHandler) {
 	// Public routes (no auth required)
 	e.GET("/api/health", h.Health)
 
@@ -34,4 +34,10 @@ func Register(e *echo.Echo, h *handlers.Handler) {
 	protected.PUT("/cvs/:id", h.UpdateCV)
 	protected.DELETE("/cvs/:id", h.DeleteCV)
 	protected.POST("/cvs/:id/duplicate", h.DuplicateCV)
+
+	// AI endpoints
+	if aiHandler != nil {
+		protected.POST("/ai/analyze-job", aiHandler.AnalyzeJob)
+		protected.POST("/ai/generate-cv", aiHandler.GenerateCV)
+	}
 }

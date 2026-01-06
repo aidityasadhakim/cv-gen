@@ -6,6 +6,7 @@ import (
 	"cv-gen/backend/internal/db"
 	"cv-gen/backend/internal/handlers"
 	"cv-gen/backend/internal/routes"
+	"cv-gen/backend/internal/services/ai"
 	"log"
 	"net/http"
 	"os"
@@ -49,6 +50,26 @@ func main() {
 	// Create handler with dependencies
 	h := handlers.New(queries)
 
+	// Initialize AI service
+	var aiHandler *handlers.AIHandler
+	if cfg.GeminiAPIKey != "" && queries != nil {
+		aiService, err := ai.New(cfg.GeminiAPIKey, queries)
+		if err != nil {
+			log.Printf("WARNING: Failed to initialize AI service: %v", err)
+		} else {
+			aiHandler = handlers.NewAIHandler(aiService)
+			log.Println("AI service initialized successfully")
+			defer aiService.Close()
+		}
+	} else {
+		if cfg.GeminiAPIKey == "" {
+			log.Println("WARNING: GEMINI_API_KEY not set, AI features will be disabled")
+		}
+		if queries == nil {
+			log.Println("WARNING: Database not connected, AI features will be disabled")
+		}
+	}
+
 	e := echo.New()
 
 	// Middleware
@@ -61,7 +82,7 @@ func main() {
 	}))
 
 	// Register routes
-	routes.Register(e, h)
+	routes.Register(e, h, aiHandler)
 
 	// Get port from configuration
 	port := cfg.BackendPort

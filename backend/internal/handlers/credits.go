@@ -28,10 +28,20 @@ func (h *Handler) Credits(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to get credits")
 	}
 
+	// Calculate remaining credits (free + paid)
+	freeRemaining := credits.FreeGenerationsLimit - credits.FreeGenerationsUsed
+	if freeRemaining < 0 {
+		freeRemaining = 0
+	}
+	totalRemaining := freeRemaining + credits.PaidCredits
+
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"user_id":                    userID,
 		"free_generations_used":      credits.FreeGenerationsUsed,
 		"free_generations_limit":     credits.FreeGenerationsLimit,
-		"free_generations_remaining": credits.FreeGenerationsLimit - credits.FreeGenerationsUsed,
+		"free_generations_remaining": freeRemaining,
+		"paid_credits":               credits.PaidCredits,
+		"total_generations":          credits.TotalGenerations,
+		"remaining":                  totalRemaining,
 	})
 }

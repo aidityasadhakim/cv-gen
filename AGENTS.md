@@ -322,6 +322,53 @@ All reusable components are in `frontend/src/components/ui/`:
 - `.bg-dark-section` - Dark gradient for sections
 - `.text-highlight` - Amber text highlight underline
 
+### Known Tailwind CSS v4 Pitfalls
+
+#### Avoid Nested max-width Constraints with Grid/Flexbox
+
+**Problem**: Combining nested `max-w-*` utility classes with the `Container` component (which uses inline `style={{ maxWidth }}`) can cause layout bugs, especially with CSS Grid.
+
+**Why it happens**: 
+- The `Container` component already applies `maxWidth` via inline styles
+- Adding `max-w-*` classes on child elements creates conflicting width constraints
+- CSS Grid calculates column widths based on parent container width
+- With Tailwind CSS v4's CSS architecture, these nested constraints can cause grid items to overlap or collapse unpredictably
+
+**Bad example**:
+```tsx
+<Container maxWidth="lg">  {/* Already constrains width to 1024px */}
+  <div className="max-w-3xl mx-auto">  {/* AVOID: redundant nested constraint */}
+    <div className="grid grid-cols-2 gap-6">
+      {/* Grid items may overlap or break */}
+    </div>
+  </div>
+</Container>
+```
+
+**Good example**:
+```tsx
+<Container maxWidth="lg">
+  <div className="mx-auto" style={{ maxWidth: '768px' }}>  {/* OK if needed */}
+    <div className="grid grid-cols-2 gap-6">
+      {/* Grid works correctly */}
+    </div>
+  </div>
+</Container>
+
+{/* Or better - just use Container's maxWidth prop */}
+<Container maxWidth="md">  {/* Use appropriate size directly */}
+  <div className="grid grid-cols-2 gap-6">
+    {/* Grid works correctly */}
+  </div>
+</Container>
+```
+
+**Best practices**:
+1. Use `Container`'s `maxWidth` prop instead of adding `max-w-*` classes inside
+2. If you need nested width constraints, use inline styles or a wrapper `<div>` without Tailwind's `max-w-*` classes
+3. For grid layouts, ensure there's only ONE clear max-width constraint in the parent chain
+4. Prefer vertical stacking (`space-y-*`) over grid for simple option cards to avoid complexity
+
 ---
 
 ## File Patterns

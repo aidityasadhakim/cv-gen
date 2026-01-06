@@ -11,6 +11,35 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const addPaidCredits = `-- name: AddPaidCredits :one
+UPDATE user_credits
+SET paid_credits = paid_credits + $2, updated_at = NOW()
+WHERE user_id = $1
+RETURNING id, user_id, free_generations_used, free_generations_limit, created_at, updated_at, paid_credits, total_generations
+`
+
+type AddPaidCreditsParams struct {
+	UserID      string `json:"user_id"`
+	PaidCredits int32  `json:"paid_credits"`
+}
+
+// Add purchased credits to user's balance
+func (q *Queries) AddPaidCredits(ctx context.Context, arg AddPaidCreditsParams) (UserCredit, error) {
+	row := q.db.QueryRow(ctx, addPaidCredits, arg.UserID, arg.PaidCredits)
+	var i UserCredit
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.FreeGenerationsUsed,
+		&i.FreeGenerationsLimit,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.PaidCredits,
+		&i.TotalGenerations,
+	)
+	return i, err
+}
+
 const countCVsByUser = `-- name: CountCVsByUser :one
 SELECT COUNT(*) FROM generated_cvs WHERE user_id = $1
 `
@@ -137,9 +166,9 @@ func (q *Queries) CreateMasterProfile(ctx context.Context, arg CreateMasterProfi
 }
 
 const createUserCredits = `-- name: CreateUserCredits :one
-INSERT INTO user_credits (user_id, free_generations_used, free_generations_limit)
-VALUES ($1, 0, 10)
-RETURNING id, user_id, free_generations_used, free_generations_limit, created_at, updated_at
+INSERT INTO user_credits (user_id, free_generations_used, free_generations_limit, paid_credits, total_generations)
+VALUES ($1, 0, 10, 0, 0)
+RETURNING id, user_id, free_generations_used, free_generations_limit, created_at, updated_at, paid_credits, total_generations
 `
 
 func (q *Queries) CreateUserCredits(ctx context.Context, userID string) (UserCredit, error) {
@@ -152,6 +181,8 @@ func (q *Queries) CreateUserCredits(ctx context.Context, userID string) (UserCre
 		&i.FreeGenerationsLimit,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.PaidCredits,
+		&i.TotalGenerations,
 	)
 	return i, err
 }
@@ -323,11 +354,11 @@ func (q *Queries) GetMasterProfile(ctx context.Context, userID string) (MasterPr
 }
 
 const getOrCreateUserCredits = `-- name: GetOrCreateUserCredits :one
-INSERT INTO user_credits (user_id, free_generations_used, free_generations_limit)
-VALUES ($1, 0, 10)
+INSERT INTO user_credits (user_id, free_generations_used, free_generations_limit, paid_credits, total_generations)
+VALUES ($1, 0, 10, 0, 0)
 ON CONFLICT (user_id) DO UPDATE
 SET updated_at = NOW()
-RETURNING id, user_id, free_generations_used, free_generations_limit, created_at, updated_at
+RETURNING id, user_id, free_generations_used, free_generations_limit, created_at, updated_at, paid_credits, total_generations
 `
 
 func (q *Queries) GetOrCreateUserCredits(ctx context.Context, userID string) (UserCredit, error) {
@@ -340,13 +371,15 @@ func (q *Queries) GetOrCreateUserCredits(ctx context.Context, userID string) (Us
 		&i.FreeGenerationsLimit,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.PaidCredits,
+		&i.TotalGenerations,
 	)
 	return i, err
 }
 
 const getUserCredits = `-- name: GetUserCredits :one
 
-SELECT id, user_id, free_generations_used, free_generations_limit, created_at, updated_at FROM user_credits WHERE user_id = $1 LIMIT 1
+SELECT id, user_id, free_generations_used, free_generations_limit, created_at, updated_at, paid_credits, total_generations FROM user_credits WHERE user_id = $1 LIMIT 1
 `
 
 // ===================
@@ -362,17 +395,30 @@ func (q *Queries) GetUserCredits(ctx context.Context, userID string) (UserCredit
 		&i.FreeGenerationsLimit,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.PaidCredits,
+		&i.TotalGenerations,
 	)
 	return i, err
 }
 
 const incrementCreditsUsed = `-- name: IncrementCreditsUsed :one
 UPDATE user_credits
-SET free_generations_used = free_generations_used + 1, updated_at = NOW()
+SET 
+    total_generations = total_generations + 1,
+    free_generations_used = CASE 
+        WHEN free_generations_used < free_generations_limit THEN free_generations_used + 1
+        ELSE free_generations_used
+    END,
+    paid_credits = CASE 
+        WHEN free_generations_used >= free_generations_limit THEN paid_credits - 1
+        ELSE paid_credits
+    END,
+    updated_at = NOW()
 WHERE user_id = $1
-RETURNING id, user_id, free_generations_used, free_generations_limit, created_at, updated_at
+RETURNING id, user_id, free_generations_used, free_generations_limit, created_at, updated_at, paid_credits, total_generations
 `
 
+// Increments total_generations, uses free credits first, then paid credits
 func (q *Queries) IncrementCreditsUsed(ctx context.Context, userID string) (UserCredit, error) {
 	row := q.db.QueryRow(ctx, incrementCreditsUsed, userID)
 	var i UserCredit
@@ -383,6 +429,8 @@ func (q *Queries) IncrementCreditsUsed(ctx context.Context, userID string) (User
 		&i.FreeGenerationsLimit,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.PaidCredits,
+		&i.TotalGenerations,
 	)
 	return i, err
 }

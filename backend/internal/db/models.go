@@ -50,4 +50,6 @@ type UserCredit struct {
 	FreeGenerationsLimit int32              `json:"free_generations_limit"`
 	CreatedAt            pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt            pgtype.Timestamptz `json:"updated_at"`
+	PaidCredits          int32              `json:"paid_credits"`
+	TotalGenerations     int32              `json:"total_generations"`
 }
