@@ -3,7 +3,6 @@ import { sectionHasContent } from '../../types/json-resume'
 
 import type { JSONResume, ResumeSectionId } from '../../types/json-resume'
 import { Card } from '../ui/card'
-import { Badge } from '../ui/badge'
 
 interface SectionNavProps {
   sections: readonly {

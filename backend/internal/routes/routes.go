@@ -26,4 +26,12 @@ func Register(e *echo.Echo, h *handlers.Handler) {
 
 	// Credits endpoints
 	protected.GET("/credits", h.Credits)
+
+	// CV endpoints
+	protected.GET("/cvs", h.ListCVs)
+	protected.POST("/cvs", h.CreateCV)
+	protected.GET("/cvs/:id", h.GetCV)
+	protected.PUT("/cvs/:id", h.UpdateCV)
+	protected.DELETE("/cvs/:id", h.DeleteCV)
+	protected.POST("/cvs/:id/duplicate", h.DuplicateCV)
 }

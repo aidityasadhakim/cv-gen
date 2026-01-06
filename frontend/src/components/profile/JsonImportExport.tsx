@@ -4,7 +4,7 @@ import { useUpdateProfile } from '../../hooks/useProfile'
 import { Button } from '../ui/button'
 import { Textarea } from '../ui/textarea'
 import { Card } from '../ui/card'
-import { H3, Body, Small } from '../ui/typography'
+import { H3, Small } from '../ui/typography'
 
 import type { JSONResume } from '../../types/json-resume'
 

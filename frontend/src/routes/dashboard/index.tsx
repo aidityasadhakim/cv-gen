@@ -2,11 +2,11 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { useUser } from '@clerk/clerk-react'
 
 import { ProtectedRoute } from '../../components/ProtectedRoute'
+import { CVList } from '../../components/cv/CVList'
 
 import { Container } from '../../components/ui/container'
 import { Section } from '../../components/ui/section'
 import { Card } from '../../components/ui/card'
-import { Button } from '../../components/ui/button'
 import { H1, H2, Body, Small } from '../../components/ui/typography'
 
 export const Route = createFileRoute('/dashboard/')({
@@ -39,24 +39,26 @@ function DashboardContent() {
         <div className="mb-8">
           <H2 className="text-charcoal mb-6">Quick Actions</H2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <Card
-              variant="default"
-              className="p-6 cursor-pointer hover:shadow-medium transition-all duration-300"
-            >
-              <div className="flex items-center space-x-4">
-                <div className="flex-shrink-0">
-                  <div className="h-12 w-12 rounded-xl bg-amber/10 flex items-center justify-center">
-                    <svg className="h-6 w-6 text-amber" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
+            <Link to="/cv/new" className="block">
+              <Card
+                variant="default"
+                className="p-6 cursor-pointer hover:shadow-medium transition-all duration-300 h-full"
+              >
+                <div className="flex items-center space-x-4">
+                  <div className="flex-shrink-0">
+                    <div className="h-12 w-12 rounded-xl bg-amber/10 flex items-center justify-center">
+                      <svg className="h-6 w-6 text-amber" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
+                    </div>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <Body className="font-semibold text-charcoal">Create New CV</Body>
+                    <Small className="text-mid-gray">Generate a tailored CV for a job posting</Small>
                   </div>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <Body className="font-semibold text-charcoal">Create New CV</Body>
-                  <Small className="text-mid-gray">Generate a tailored CV for a job posting</Small>
-                </div>
-              </div>
-            </Card>
+              </Card>
+            </Link>
 
             <Link to="/profile" className="block">
               <Card
@@ -81,7 +83,7 @@ function DashboardContent() {
 
             <Card
               variant="default"
-              className="p-6 cursor-pointer hover:shadow-medium transition-all duration-300"
+              className="p-6 hover:shadow-medium transition-all duration-300"
             >
               <div className="flex items-center space-x-4">
                 <div className="flex-shrink-0">
@@ -101,14 +103,8 @@ function DashboardContent() {
         </div>
 
         <div>
-          <H2 className="text-charcoal mb-6">Recent Activity</H2>
-          <Card variant="default" className="p-12 text-center">
-            <svg className="mx-auto h-12 w-12 text-mid-gray/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            <Body className="mt-4 text-charcoal font-medium">No CVs yet</Body>
-            <Small className="mt-1 text-mid-gray">Get started by creating your first tailored CV</Small>
-          </Card>
+          <H2 className="text-charcoal mb-6">Your CVs</H2>
+          <CVList />
         </div>
       </Container>
     </Section>

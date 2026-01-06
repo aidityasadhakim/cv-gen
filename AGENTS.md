@@ -194,6 +194,134 @@ import { cn } from '@/lib/utils'
 <div className={cn('base-class', isActive && 'active-class')} />
 ```
 
+**Design System**: Always use the design system from `styles.json`:
+```typescript
+// Use design system colors via CSS variables
+<div className="bg-amber text-charcoal hover:bg-amber-dark" />
+
+// Use design system spacing
+<div className="p-lg md:p-xl" />
+
+// Use design system shadows
+<div className="shadow-soft hover:shadow-medium" />
+
+// Use design system typography components
+import { Hero, H1, H2, H3, H4, Body, Small, Caption, Code } from '@/components/ui/typography'
+
+<Hero>Page Title</Hero>
+<H1>Section Title</H1>
+<Body>Main content text</Body>
+<Small>Helper text</Small>
+```
+
+**Reusable UI Components**: Always use reusable components from `frontend/src/components/ui/`:
+```typescript
+// Button variants from design system
+import { Button } from '@/components/ui/button'
+
+<Button variant="primary" size="default">Click me</Button>
+<Button variant="secondary" size="lg">Secondary</Button>
+<Button variant="ghost" size="sm">Ghost</Button>
+<Button variant="destructive" size="icon">Delete</Button>
+
+// Card variants
+import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card'
+
+<Card variant="default">Content</Card>
+<Card variant="elevated">Elevated card</Card>
+<Card variant="dark">Dark card</Card>
+
+// Input with design system styling
+import { Input, Textarea, Label } from '@/components/ui'
+
+<Input placeholder="Enter text..." />
+<Textarea rows={4} />
+<Label>Field label</Label>
+
+// Badge variants
+import { Badge } from '@/components/ui/badge'
+
+<Badge variant="default">Default</Badge>
+<Badge variant="secondary">Secondary</Badge>
+<Badge variant="success">Success</Badge>
+<Badge variant="warning">Warning</Badge>
+<Badge variant="destructive">Error</Badge>
+
+// Layout components
+import { Container, Section } from '@/components/ui/container'
+
+<Section variant="warmFade" spacing="lg">
+  <Container maxWidth="xl">
+    Content
+  </Container>
+</Section>
+```
+
+---
+
+## Design System Guidelines
+
+The CV-Gen Design System is defined in `styles.json`. Always reference it for styling decisions.
+
+### Colors
+Use design system colors via Tailwind CSS variables:
+- **Primary**: `--color-amber` (#F5A623), `--color-amber-dark` (#E09000), `--color-amber-light` (#FFB84D)
+- **Backgrounds**: `--color-warm-white` (#FFFBF5), `--color-cream` (#F5F0E8), `--color-off-white` (#FAF7F2)
+- **Text**: `--color-charcoal` (#1A1A1A), `--color-mid-gray` (#6B6B6B)
+- **Semantic**: `--color-success` (#4CAF50), `--color-warning` (#F5A623), `--color-error` (#FF6B4A), `--color-info` (#5B8DEF)
+- **Decorative**: `--color-purple` (#8B7EC8), `--color-lavender` (#B8A9E8)
+
+### Typography
+- **Headings**: Use `Space Grotesk` font family (loaded from Google Fonts)
+- **Body**: Use `DM Sans` font family
+- **Code**: Use `JetBrains Mono` font family
+- Use typography components for consistent scaling: `Hero`, `H1`, `H2`, `H3`, `H4`, `Body`, `Small`, `Caption`, `Code`
+
+### Spacing
+Design system spacing scale:
+- `xs`: 0.25rem, `sm`: 0.5rem, `md`: 1rem, `lg`: 1.5rem, `xl`: 2rem
+- `2xl`: 3rem, `3xl`: 4rem, `4xl`: 6rem, `5xl`: 8rem, `6xl`: 12rem
+
+### Shadows
+- `--shadow-subtle`: 0 2px 8px rgba(26, 26, 26, 0.04)
+- `--shadow-soft`: 0 4px 16px rgba(26, 26, 26, 0.08)
+- `--shadow-medium`: 0 8px 32px rgba(26, 26, 26, 0.12)
+- `--shadow-elevated`: 0 16px 48px rgba(26, 26, 26, 0.16)
+- `--shadow-dramatic`: 0 24px 64px rgba(26, 26, 26, 0.2)
+
+### Borders
+- `--radius-sm`: 4px, `--radius-md`: 8px, `--radius-lg`: 12px
+- `--radius-xl`: 16px, `--radius-2xl`: 24px, `--radius-pill`: 9999px
+
+### Motion
+- **Easing**: `--ease-default` (cubic-bezier 0.4, 0, 0.2, 1), `--ease-bounce`, `--ease-smooth`
+- **Duration**: instant (100ms), fast (200ms), normal (300ms), slow (500ms)
+- **Hover effects**: scale 1.02, lift -4px, glow with amber shadow
+
+### UI Component Library
+All reusable components are in `frontend/src/components/ui/`:
+- `button.tsx` - Primary, secondary, ghost, destructive variants with sizes
+- `card.tsx` - Default, elevated, dark variants
+- `input.tsx`, `textarea.tsx`, `label.tsx` - Form elements with amber focus ring
+- `badge.tsx` - Status badges with semantic colors
+- `typography.tsx` - Hero, H1-H4, Body, Small, Caption, Code components
+- `container.tsx` - Responsive container with max-width
+- `section.tsx` - Section wrapper with spacing variants
+
+### When Creating New Components
+1. Check if a reusable component exists in `frontend/src/components/ui/`
+2. Use CVA (class-variance-authority) for component variants
+3. Follow design system tokens from `styles.json`
+4. Export from `frontend/src/components/ui/` for reuse
+5. Use `cn()` utility for conditional classes
+
+### CSS Utility Classes Available
+- `.text-gradient` - Amber to coral gradient text
+- `.bg-warm-fade` - Warm white fade gradient
+- `.bg-accent-glow` - Amber radial glow effect
+- `.bg-dark-section` - Dark gradient for sections
+- `.text-highlight` - Amber text highlight underline
+
 ---
 
 ## File Patterns

@@ -469,6 +469,169 @@ Return ONLY valid JSON in JSON Resume format (no markdown code blocks).
 
 ---
 
+## Reference Implementation Example
+
+The following is a working example of Gemini integration in Go using the `google.golang.org/genai` package with JSON schema response:
+
+```go
+package main
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"os"
+
+	"github.com/joho/godotenv"
+	"github.com/labstack/echo/v4"
+	"google.golang.org/genai"
+)
+
+// Response struct with JSON tags for structured output
+type QuizQuestion struct {
+	Question      string   `json:"question"`
+	Options       []string `json:"options"`
+	CorrectAnswer int      `json:"correctAnswer"`
+	Explanation   string   `json:"explanation"`
+}
+
+func main() {
+	godotenv.Load(".env")
+	geminiApiKey := os.Getenv("GEMINI_API_KEY")
+	e := echo.New()
+
+	if geminiApiKey == "" {
+		e.Logger.Fatal("GEMINI_API_KEY is not set in .env file")
+	}
+
+	// Initialize Gemini client
+	geminiClient, err := genai.NewClient(context.Background(), &genai.ClientConfig{
+		APIKey: geminiApiKey,
+	})
+	if err != nil {
+		e.Logger.Fatal("Failed to create Gemini client:", err)
+	}
+
+	// Define JSON schema for structured responses
+	quizSchema := map[string]interface{}{
+		"type": "object",
+		"properties": map[string]interface{}{
+			"question": map[string]interface{}{
+				"type":        "string",
+				"description": "The quiz question",
+			},
+			"options": map[string]interface{}{
+				"type": "array",
+				"items": map[string]interface{}{
+					"type": "string",
+				},
+				"minItems":    4,
+				"maxItems":    4,
+				"description": "Four answer options",
+			},
+			"correctAnswer": map[string]interface{}{
+				"type":        "integer",
+				"minimum":     0,
+				"maximum":     3,
+				"description": "Index of the correct answer (0-3)",
+			},
+			"explanation": map[string]interface{}{
+				"type":        "string",
+				"description": "Brief explanation of the correct answer",
+			},
+		},
+		"required": []string{"question", "options", "correctAnswer", "explanation"},
+	}
+
+	e.GET("/generate", func(c echo.Context) error {
+		ctx := c.Request().Context()
+		
+		// Call Gemini API with JSON schema constraint
+		response, err := geminiClient.Models.GenerateContent(ctx,
+			"gemini-2.5-flash",
+			genai.Text("Generate a quiz question about Go programming"),
+			&genai.GenerateContentConfig{
+				ResponseMIMEType:   "application/json",
+				ResponseJsonSchema: quizSchema,
+			},
+		)
+		if err != nil {
+			return c.String(500, "Failed to generate content")
+		}
+
+		// Parse structured JSON response
+		quiz := QuizQuestion{}
+		if err := json.Unmarshal([]byte(response.Text()), &quiz); err != nil {
+			return c.String(500, "Failed to parse response")
+		}
+		
+		return c.JSON(200, quiz)
+	})
+
+	e.Logger.Fatal(e.Start(":8080"))
+}
+```
+
+### Key Implementation Notes
+
+1. **Package**: Use `google.golang.org/genai` (not the older `github.com/google/generative-ai-go/genai`)
+2. **Client Initialization**: Use `genai.NewClient()` with `&genai.ClientConfig{APIKey: apiKey}`
+3. **Structured Output**: Use `ResponseMIMEType: "application/json"` and `ResponseJsonSchema` for guaranteed JSON responses
+4. **Model**: Use `gemini-2.5-flash` for fast, cost-effective generation
+5. **Response Parsing**: Call `response.Text()` and unmarshal into your struct
+
+### For CV-Gen Implementation
+
+Adapt this pattern for job analysis and CV tailoring:
+
+```go
+// Job analysis schema
+jobAnalysisSchema := map[string]interface{}{
+	"type": "object",
+	"properties": map[string]interface{}{
+		"match_score": map[string]interface{}{
+			"type":        "integer",
+			"minimum":     0,
+			"maximum":     100,
+			"description": "How well the candidate matches the job (0-100)",
+		},
+		"matching_skills": map[string]interface{}{
+			"type":        "array",
+			"items":       map[string]interface{}{"type": "string"},
+			"description": "Skills the candidate has that match the job",
+		},
+		"missing_skills": map[string]interface{}{
+			"type":        "array",
+			"items":       map[string]interface{}{"type": "string"},
+			"description": "Skills the job requires that the candidate lacks",
+		},
+		"suggestions": map[string]interface{}{
+			"type":        "array",
+			"items":       map[string]interface{}{"type": "string"},
+			"description": "Actionable suggestions for tailoring the CV",
+		},
+		"keywords_to_include": map[string]interface{}{
+			"type":        "array",
+			"items":       map[string]interface{}{"type": "string"},
+			"description": "Important keywords to include in the CV",
+		},
+	},
+	"required": []string{"match_score", "matching_skills", "missing_skills", "suggestions", "keywords_to_include"},
+}
+
+// Usage in handler
+response, err := geminiClient.Models.GenerateContent(ctx,
+	"gemini-2.5-flash",
+	genai.Text(fmt.Sprintf("Analyze this job description against the candidate profile.\n\nJob: %s\n\nProfile: %s", jobDesc, profileJSON)),
+	&genai.GenerateContentConfig{
+		ResponseMIMEType:   "application/json",
+		ResponseJsonSchema: jobAnalysisSchema,
+	},
+)
+```
+
+---
+
 ## Testing Checklist
 
 ### API Testing

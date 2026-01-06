@@ -9,7 +9,7 @@ interface ProgressIndicatorProps {
 
 export function ProgressIndicator({
   completion,
-  className,
+  className: _className,
 }: ProgressIndicatorProps) {
   const getColorClass = () => {
     if (completion >= 80) return 'bg-success'
