@@ -16,7 +16,7 @@ function HomePage() {
     <div>
       <Section variant="warmFade">
         <Container maxWidth="xl">
-          <div className="text-center max-w-4xl mx-auto">
+          <div className="text-center max-w-6xl mx-auto">
             <Hero className="text-charcoal">
               Create AI-Powered CVs
               <span className="text-gradient block mt-2">
