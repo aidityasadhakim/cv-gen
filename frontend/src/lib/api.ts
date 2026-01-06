@@ -105,13 +105,23 @@ export function useApiClient() {
     [request]
   )
 
+  const patch = useCallback(
+    <T>(endpoint: string, body?: unknown, options?: RequestOptions) =>
+      request<T>(endpoint, {
+        ...options,
+        method: 'PATCH',
+        body: body ? JSON.stringify(body) : undefined,
+      }),
+    [request]
+  )
+
   const del = useCallback(
     <T>(endpoint: string, options?: RequestOptions) =>
       request<T>(endpoint, { ...options, method: 'DELETE' }),
     [request]
   )
 
-  return { request, get, post, put, delete: del }
+  return { request, get, post, put, patch, delete: del }
 }
 
 /**

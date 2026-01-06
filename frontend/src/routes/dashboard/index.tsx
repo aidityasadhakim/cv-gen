@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { useUser } from '@clerk/clerk-react'
 
 import { ProtectedRoute } from '../../components/ProtectedRoute'
@@ -69,7 +69,10 @@ function DashboardContent() {
             </div>
 
             {/* Edit Master Profile Card */}
-            <div className="relative rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm hover:border-indigo-500 hover:ring-1 hover:ring-indigo-500 transition-all cursor-pointer">
+            <Link
+              to="/profile"
+              className="relative rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm hover:border-indigo-500 hover:ring-1 hover:ring-indigo-500 transition-all cursor-pointer"
+            >
               <div className="flex items-center space-x-3">
                 <div className="flex-shrink-0">
                   <div className="h-10 w-10 rounded-lg bg-green-100 flex items-center justify-center">
@@ -97,7 +100,7 @@ function DashboardContent() {
                   </p>
                 </div>
               </div>
-            </div>
+            </Link>
 
             {/* View Generated CVs Card */}
             <div className="relative rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm hover:border-indigo-500 hover:ring-1 hover:ring-indigo-500 transition-all cursor-pointer">

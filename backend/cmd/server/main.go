@@ -2,6 +2,10 @@ package main
 
 import (
 	"context"
+	"cv-gen/backend/internal/config"
+	"cv-gen/backend/internal/db"
+	"cv-gen/backend/internal/handlers"
+	"cv-gen/backend/internal/routes"
 	"log"
 	"net/http"
 	"os"
@@ -11,8 +15,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 
-	"cv-gen/backend/internal/config"
-	"cv-gen/backend/internal/db"
 	appMiddleware "cv-gen/backend/internal/middleware"
 )
 
@@ -44,6 +46,9 @@ func main() {
 		queries = db.New(pool.Pool)
 	}
 
+	// Create handler with dependencies
+	h := handlers.New(queries)
+
 	e := echo.New()
 
 	// Middleware
@@ -51,24 +56,12 @@ func main() {
 	e.Use(middleware.Recover())
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"http://localhost:3000", "http://localhost:5173"},
-		AllowMethods: []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions},
+		AllowMethods: []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions, http.MethodPatch},
 		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization},
 	}))
 
-	// Public routes (no auth required)
-	e.GET("/api/health", healthHandler)
-
-	// Protected routes (auth required)
-	protected := e.Group("/api")
-	protected.Use(appMiddleware.ClerkAuth())
-
-	// Protected endpoints - pass queries to handlers
-	protected.GET("/profile", func(c echo.Context) error {
-		return profileHandler(c, queries)
-	})
-	protected.GET("/credits", func(c echo.Context) error {
-		return creditsHandler(c, queries)
-	})
+	// Register routes
+	routes.Register(e, h)
 
 	// Get port from configuration
 	port := cfg.BackendPort
@@ -92,71 +85,4 @@ func main() {
 	if err := e.Shutdown(shutdownCtx); err != nil {
 		e.Logger.Fatal(err)
 	}
-}
-
-// healthHandler returns the health status of the API
-func healthHandler(c echo.Context) error {
-	return c.JSON(http.StatusOK, map[string]string{
-		"status": "healthy",
-		"time":   time.Now().Format(time.RFC3339),
-	})
-}
-
-// profileHandler returns the authenticated user's profile
-func profileHandler(c echo.Context, queries *db.Queries) error {
-	userID, err := appMiddleware.RequireUserID(c)
-	if err != nil {
-		return err
-	}
-
-	if queries == nil {
-		return c.JSON(http.StatusOK, map[string]interface{}{
-			"user_id": userID,
-			"message": "Database not connected",
-		})
-	}
-
-	// Try to get the user's profile
-	profile, err := queries.GetMasterProfile(c.Request().Context(), userID)
-	if err != nil {
-		// Profile doesn't exist yet, return empty profile
-		return c.JSON(http.StatusOK, map[string]interface{}{
-			"user_id":     userID,
-			"has_profile": false,
-		})
-	}
-
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"user_id":     userID,
-		"has_profile": true,
-		"profile":     profile,
-	})
-}
-
-// creditsHandler returns the authenticated user's credits
-func creditsHandler(c echo.Context, queries *db.Queries) error {
-	userID, err := appMiddleware.RequireUserID(c)
-	if err != nil {
-		return err
-	}
-
-	if queries == nil {
-		return c.JSON(http.StatusOK, map[string]interface{}{
-			"user_id": userID,
-			"message": "Database not connected",
-		})
-	}
-
-	// Get or create user credits
-	credits, err := queries.GetOrCreateUserCredits(c.Request().Context(), userID)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "failed to get credits")
-	}
-
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"user_id":                    userID,
-		"free_generations_used":      credits.FreeGenerationsUsed,
-		"free_generations_limit":     credits.FreeGenerationsLimit,
-		"free_generations_remaining": credits.FreeGenerationsLimit - credits.FreeGenerationsUsed,
-	})
 }

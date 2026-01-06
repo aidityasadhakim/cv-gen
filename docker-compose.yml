@@ -38,6 +38,8 @@ services:
       DATABASE_URL: ${DATABASE_URL:-postgres://cvgen:cvgen_secret@db:5432/cvgen_db?sslmode=disable}
       BACKEND_PORT: ${BACKEND_PORT:-8080}
       BACKEND_HOST: ${BACKEND_HOST:-0.0.0.0}
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
     depends_on:
       db:
         condition: service_healthy
@@ -58,6 +60,7 @@ services:
       - "3000:3000"
     environment:
       VITE_API_URL: ${VITE_API_URL:-http://localhost:8080}
+      VITE_CLERK_PUBLISHABLE_KEY: ${VITE_CLERK_PUBLISHABLE_KEY:-}
     depends_on:
       - backend
 
