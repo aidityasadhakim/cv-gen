@@ -45,6 +45,13 @@ CV-Gen is a full-stack monorepo application designed for generating professional
     ```
     *Note: Ensure the variables in `.env` match your desired configuration.*
 
+    **Configuration Note:**
+    This project is configured with a custom domain `cv.aidityas.me` in the following files:
+    - `frontend/nginx.conf` (server_name)
+    - `backend/cmd/server/main.go` (CORS settings)
+    
+    If you are cloning this repository, please update these files to use your own domain or remove them to default to localhost configuration.
+
 3.  **Start the Development Environment**
     Run the following command to build and start all services:
     ```bash
