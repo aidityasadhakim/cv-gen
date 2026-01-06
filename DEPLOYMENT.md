@@ -1,6 +1,6 @@
 # VPS Deployment Guide for CV-Gen
 
-This guide explains how to deploy the CV-Gen application on a VPS (Virtual Private Server) using Docker Compose. The setup includes the Go backend, PostgreSQL database, and the React frontend served via Nginx.
+This guide explains how to deploy the CV-Gen application on a VPS (Virtual Private Server) using Docker Compose. The setup includes the Go backend, PostgreSQL database, and the React frontend served via Nginx with HTTPS support using Certbot.
 
 ## Prerequisites
 
@@ -47,44 +47,61 @@ VITE_API_URL=/api
 VITE_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
 ```
 
-### 3. Build and Run
-Build and start the services in detached mode:
+### 3. Build and Run (Production Mode)
+
+Use the production compose file to build and start the services. This uses the `prod` targets in the Dockerfiles and sets up the Nginx web server.
 
 ```bash
-docker compose up -d --build
+docker compose -f docker-compose.prod.yml up -d --build
 ```
 
 This command will:
 1.  Start the PostgreSQL database.
-2.  Build and start the Go backend.
-3.  Build the React frontend and serve it using the Nginx configuration.
+2.  Build and start the Go backend (optimized production build).
+3.  Build the React frontend and serve it using Nginx (port 80).
 
-### 4. Verify Deployment
+### 4. Enable SSL with Certbot
+
+This project uses Certbot to generate free SSL certificates from Let's Encrypt.
+
+**Step 1: Start the services**
+Ensure the application is running (as done in step 3). Nginx must be running on port 80 to verify your domain.
+
+**Step 2: Generate the Certificate**
+Run the Certbot container to perform the verification:
+
+```bash
+docker compose -f docker-compose.prod.yml run --rm certbot
+```
+
+This will verify your domain (`cv.aidityas.me`) and save the certificates in `./certbot/conf`.
+
+**Step 3: Update Nginx for HTTPS (Future Step)**
+*After* you have successfully generated the certificates, you will need to update `frontend/nginx.conf` to uncomment/add the SSL configuration (listen on 443, path to certificates) and restart the frontend container.
+
+### 5. Verify Deployment
 Check if all containers are running:
 
 ```bash
-docker compose ps
+docker compose -f docker-compose.prod.yml ps
 ```
 
 You should see `cvgen-db`, `cvgen-backend`, and `cvgen-frontend` running.
 
-Access your application at `http://cv.aidityas.me` (ensure your DNS is configured to point to your VPS IP).
+Access your application at `http://cv.aidityas.me`.
 
 ## Nginx Configuration Details
 
-The Nginx configuration is located at `frontend/nginx.conf`. It is automatically applied when the frontend container starts.
+The Nginx configuration is located at `frontend/nginx.conf`.
 
 - **Port**: Listens on port 80.
 - **Server Name**: Configured for `localhost` and `cv.aidityas.me`.
 - **API Proxying**: Requests to `/api` are proxied to the internal `backend` service on port 8080.
-- **SPA Routing**: All other requests are served via `index.html` to support client-side routing.
+- **SPA Routing**: All other requests are served via `index.html`.
+- **ACME Challenge**: A location block for `/.well-known/acme-challenge/` allows Certbot to verify domain ownership.
 
-## Enabling HTTPS (Recommended)
+## Project Structure (Production)
 
-The current setup serves traffic over HTTP. To secure your site with HTTPS, you have a few options:
-
-### Option A: Reverse Proxy (Traefik / Caddy / System Nginx)
-Run a reverse proxy on your host machine (outside Docker) or as another container that handles SSL termination (e.g., using Let's Encrypt) and forwards traffic to the exposed port 80 of the `cvgen-frontend` container.
-
-### Option B: Cloudflare
-If you manage your DNS with Cloudflare, you can enable "Flexible" or "Full" SSL mode, which handles HTTPS between the user and Cloudflare, while Cloudflare talks to your VPS over HTTP.
+- `docker-compose.prod.yml`: The orchestration file for production.
+- `frontend/nginx.conf`: The web server configuration.
+- `./certbot/`: This directory will appear on your host machine after running Certbot, containing your certificates (`conf`) and verification files (`www`). **Back up this directory.**
