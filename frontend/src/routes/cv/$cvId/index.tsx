@@ -1,14 +1,17 @@
-import { useState, useCallback, useRef, useEffect } from 'react'
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
 
 import { ProtectedRoute } from '../../../components/ProtectedRoute'
 import { ThemeRenderer } from '../../../components/cv/ThemeRenderer'
 import { TemplateSelector } from '../../../components/cv/TemplateSelector'
+import { GenerateCoverLetterModal } from '../../../components/cover-letter/GenerateCoverLetterModal'
 import { Card } from '../../../components/ui/card'
 import { Button } from '../../../components/ui/button'
 import { Input } from '../../../components/ui/input'
-import { H2, Body, Small } from '../../../components/ui/typography'
+import { Body, H2, Small } from '../../../components/ui/typography'
+import { LoadingSpinner } from '../../../components/ui/loading-spinner'
 import { useCV, useUpdateCV } from '../../../hooks/useCVs'
+import { useEscapeKey } from '../../../hooks/useKeyboardShortcuts'
 import { RESUME_SECTIONS, sectionHasContent } from '../../../types/json-resume'
 import { cn } from '../../../lib/utils'
 
@@ -29,6 +32,7 @@ function CVEditorPage() {
 }
 
 function CVEditorContent({ cvId }: { cvId: string }) {
+  const navigate = useNavigate()
   const { data: cv, isLoading, error } = useCV(cvId)
   const updateMutation = useUpdateCV()
   const [isEditingName, setIsEditingName] = useState(false)
@@ -36,8 +40,13 @@ function CVEditorContent({ cvId }: { cvId: string }) {
   const [localResume, setLocalResume] = useState<JSONResume | null>(null)
   const [templateId, setTemplateId] = useState<string>('professional')
   const [hiddenSections, setHiddenSections] = useState<Set<ResumeSectionId>>(new Set())
+  const [showCoverLetterModal, setShowCoverLetterModal] = useState(false)
+  const [showMobileSidebar, setShowMobileSidebar] = useState(false)
   const printRef = useRef<HTMLDivElement>(null)
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Close mobile sidebar with Escape key
+  useEscapeKey(() => setShowMobileSidebar(false), showMobileSidebar)
 
   // Initialize local state when CV loads
   useEffect(() => {
@@ -93,26 +102,26 @@ function CVEditorContent({ cvId }: { cvId: string }) {
   // Filter resume data based on hidden sections
   const filteredResume: JSONResume = localResume
     ? {
-        ...localResume,
-        work: hiddenSections.has('work') ? [] : localResume.work,
-        education: hiddenSections.has('education') ? [] : localResume.education,
-        skills: hiddenSections.has('skills') ? [] : localResume.skills,
-        projects: hiddenSections.has('projects') ? [] : localResume.projects,
-        certificates: hiddenSections.has('certificates') ? [] : localResume.certificates,
-        awards: hiddenSections.has('awards') ? [] : localResume.awards,
-        publications: hiddenSections.has('publications') ? [] : localResume.publications,
-        languages: hiddenSections.has('languages') ? [] : localResume.languages,
-        volunteer: hiddenSections.has('volunteer') ? [] : localResume.volunteer,
-        interests: hiddenSections.has('interests') ? [] : localResume.interests,
-        references: hiddenSections.has('references') ? [] : localResume.references,
-      }
+      ...localResume,
+      work: hiddenSections.has('work') ? [] : localResume.work,
+      education: hiddenSections.has('education') ? [] : localResume.education,
+      skills: hiddenSections.has('skills') ? [] : localResume.skills,
+      projects: hiddenSections.has('projects') ? [] : localResume.projects,
+      certificates: hiddenSections.has('certificates') ? [] : localResume.certificates,
+      awards: hiddenSections.has('awards') ? [] : localResume.awards,
+      publications: hiddenSections.has('publications') ? [] : localResume.publications,
+      languages: hiddenSections.has('languages') ? [] : localResume.languages,
+      volunteer: hiddenSections.has('volunteer') ? [] : localResume.volunteer,
+      interests: hiddenSections.has('interests') ? [] : localResume.interests,
+      references: hiddenSections.has('references') ? [] : localResume.references,
+    }
     : {}
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin h-8 w-8 border-2 border-amber border-t-transparent rounded-full mx-auto mb-4" />
+          <LoadingSpinner size="lg" className="mx-auto mb-4" />
           <Body className="text-mid-gray">Loading CV...</Body>
         </div>
       </div>
@@ -140,12 +149,12 @@ function CVEditorContent({ cvId }: { cvId: string }) {
       {/* Header - hidden when printing */}
       <div className="print:hidden bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-screen-2xl mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 sm:gap-4 min-w-0">
               <Link to="/dashboard">
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" className="px-2 sm:px-3">
                   <svg
-                    className="w-4 h-4 mr-1"
+                    className="w-4 h-4 sm:mr-1"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -157,7 +166,7 @@ function CVEditorContent({ cvId }: { cvId: string }) {
                       d="M10 19l-7-7m0 0l7-7m-7 7h18"
                     />
                   </svg>
-                  Back
+                  <span className="hidden sm:inline">Back</span>
                 </Button>
               </Link>
 
@@ -166,7 +175,7 @@ function CVEditorContent({ cvId }: { cvId: string }) {
                   <Input
                     value={editedName}
                     onChange={(e) => setEditedName(e.target.value)}
-                    className="w-64"
+                    className="w-40 sm:w-64"
                     autoFocus
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') handleNameSave()
@@ -183,11 +192,11 @@ function CVEditorContent({ cvId }: { cvId: string }) {
               ) : (
                 <button
                   onClick={() => setIsEditingName(true)}
-                  className="text-lg font-semibold text-charcoal hover:text-amber transition-colors"
+                  className="text-base sm:text-lg font-semibold text-charcoal hover:text-amber transition-colors truncate max-w-[150px] sm:max-w-none"
                 >
                   {cv.name}
                   <svg
-                    className="w-4 h-4 inline ml-2 text-mid-gray"
+                    className="w-4 h-4 inline ml-1 sm:ml-2 text-mid-gray"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -203,13 +212,61 @@ function CVEditorContent({ cvId }: { cvId: string }) {
               )}
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2">
               {updateMutation.isPending && (
-                <Small className="text-mid-gray">Saving...</Small>
+                <Small className="text-mid-gray hidden sm:block">Saving...</Small>
               )}
-              <Button variant="default" onClick={handlePrint}>
+              {/* Mobile settings button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="lg:hidden px-2"
+                onClick={() => setShowMobileSidebar(true)}
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                </svg>
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setShowCoverLetterModal(true)}
+                className="hidden sm:flex"
+              >
                 <svg
                   className="w-4 h-4 mr-2"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+                Cover Letter
+              </Button>
+              <Button variant="default" size="sm" onClick={handlePrint}>
+                <svg
+                  className="w-4 h-4 sm:mr-2"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -221,7 +278,7 @@ function CVEditorContent({ cvId }: { cvId: string }) {
                     d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
                   />
                 </svg>
-                Download PDF
+                <span className="hidden sm:inline">Download PDF</span>
               </Button>
             </div>
           </div>
@@ -231,8 +288,8 @@ function CVEditorContent({ cvId }: { cvId: string }) {
       {/* Main Content */}
       <div className="max-w-screen-2xl mx-auto print:max-w-none">
         <div className="flex print:block">
-          {/* Sidebar - hidden when printing */}
-          <div className="w-80 flex-shrink-0 p-4 print:hidden">
+          {/* Sidebar - hidden on mobile, shown on lg screens */}
+          <div className="hidden lg:block w-80 flex-shrink-0 p-4 print:hidden">
             <div className="sticky top-20 space-y-4">
               {/* Template Selector */}
               <Card variant="default" className="p-4">
@@ -309,7 +366,7 @@ function CVEditorContent({ cvId }: { cvId: string }) {
           </div>
 
           {/* Preview Area */}
-          <div className="flex-1 p-4 print:p-0">
+          <div className="flex-1 p-2 sm:p-4 print:p-0 overflow-x-auto">
             <div
               ref={printRef}
               className="bg-white shadow-lg mx-auto print:shadow-none print:mx-0"
@@ -325,6 +382,133 @@ function CVEditorContent({ cvId }: { cvId: string }) {
         </div>
       </div>
 
+      {/* Mobile Sidebar Overlay */}
+      {showMobileSidebar && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setShowMobileSidebar(false)}
+          />
+          <div className="absolute right-0 top-0 h-full w-80 max-w-[90vw] bg-white shadow-xl overflow-y-auto">
+            <div className="sticky top-0 flex items-center justify-between p-4 bg-white border-b">
+              <H2 className="text-charcoal">Settings</H2>
+              <button
+                onClick={() => setShowMobileSidebar(false)}
+                className="p-2 hover:bg-gray-100 rounded-lg"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-4 space-y-4">
+              {/* Cover Letter Button (mobile) */}
+              <Button
+                variant="secondary"
+                className="w-full"
+                onClick={() => {
+                  setShowMobileSidebar(false)
+                  setShowCoverLetterModal(true)
+                }}
+              >
+                <svg
+                  className="w-4 h-4 mr-2"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+                Generate Cover Letter
+              </Button>
+
+              {/* Template Selector */}
+              <Card variant="default" className="p-4">
+                <H2 className="text-charcoal mb-3 text-sm">Template</H2>
+                <TemplateSelector
+                  value={templateId}
+                  onChange={(id) => {
+                    handleTemplateChange(id)
+                  }}
+                />
+              </Card>
+
+              {/* Section Toggles */}
+              <Card variant="default" className="p-4">
+                <H2 className="text-charcoal mb-3 text-sm">Sections</H2>
+                <div className="space-y-2">
+                  {RESUME_SECTIONS.map((section) => {
+                    const hasContent = localResume
+                      ? sectionHasContent(localResume, section.id)
+                      : false
+                    const isHidden = hiddenSections.has(section.id)
+
+                    return (
+                      <button
+                        key={section.id}
+                        onClick={() => handleToggleSection(section.id)}
+                        disabled={!hasContent}
+                        className={cn(
+                          'w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors',
+                          hasContent
+                            ? isHidden
+                              ? 'bg-gray-100 text-mid-gray'
+                              : 'bg-amber/10 text-charcoal'
+                            : 'bg-gray-50 text-mid-gray/50 cursor-not-allowed'
+                        )}
+                      >
+                        <span>{section.label}</span>
+                        {hasContent && (
+                          <span className={cn(
+                            'w-5 h-5 rounded flex items-center justify-center',
+                            isHidden ? 'bg-gray-200' : 'bg-amber text-white'
+                          )}>
+                            {!isHidden && (
+                              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path
+                                  fillRule="evenodd"
+                                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                  clipRule="evenodd"
+                                />
+                              </svg>
+                            )}
+                          </span>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+                <Small className="text-mid-gray mt-3 block">
+                  Toggle sections to show/hide them in your CV
+                </Small>
+              </Card>
+
+              {/* Edit Profile Link */}
+              <Card variant="default" className="p-4">
+                <Link
+                  to="/profile"
+                  className="flex items-center gap-2 text-amber hover:underline"
+                  onClick={() => setShowMobileSidebar(false)}
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  <Small>Edit Master Profile</Small>
+                </Link>
+                <Small className="text-mid-gray mt-1 block">
+                  Changes to your master profile will update this CV
+                </Small>
+              </Card>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Print Styles */}
       <style>{`
         @media print {
@@ -338,6 +522,20 @@ function CVEditorContent({ cvId }: { cvId: string }) {
           }
         }
       `}</style>
+
+      {/* Generate Cover Letter Modal */}
+      <GenerateCoverLetterModal
+        isOpen={showCoverLetterModal}
+        cvId={cvId}
+        jobTitle={cv.job_title}
+        jobDescription={cv.job_description}
+        companyName={cv.company_name}
+        onClose={() => setShowCoverLetterModal(false)}
+        onSuccess={(coverLetterId) => {
+          setShowCoverLetterModal(false)
+          navigate({ to: '/cover-letter/$id', params: { id: coverLetterId } })
+        }}
+      />
     </div>
   )
 }

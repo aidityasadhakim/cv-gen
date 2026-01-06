@@ -441,7 +441,7 @@ function HomePage() {
               {/* Brand */}
               <div className="md:col-span-2">
                 <span className="font-display text-2xl font-bold text-warm-white">CV-Gen</span>
-                <Body className="text-warm-white/60 mt-3 max-w-sm">
+                <Body className="text-warm-white/60 mt-3">
                   AI-powered CV generation that helps you land your dream job
                   faster.
                 </Body>

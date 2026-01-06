@@ -38,17 +38,18 @@ func New(queries *db.Queries) *Service {
 
 // CVResponse represents the API response for CV operations
 type CVResponse struct {
-	ID          string             `json:"id"`
-	UserID      string             `json:"user_id"`
-	Name        string             `json:"name"`
-	CVData      *models.JSONResume `json:"cv_data"`
-	TemplateID  string             `json:"template_id"`
-	JobURL      string             `json:"job_url,omitempty"`
-	JobTitle    string             `json:"job_title,omitempty"`
-	CompanyName string             `json:"company_name,omitempty"`
-	MatchScore  *int               `json:"match_score,omitempty"`
-	CreatedAt   string             `json:"created_at"`
-	UpdatedAt   string             `json:"updated_at"`
+	ID             string             `json:"id"`
+	UserID         string             `json:"user_id"`
+	Name           string             `json:"name"`
+	CVData         *models.JSONResume `json:"cv_data"`
+	TemplateID     string             `json:"template_id"`
+	JobURL         string             `json:"job_url,omitempty"`
+	JobTitle       string             `json:"job_title,omitempty"`
+	CompanyName    string             `json:"company_name,omitempty"`
+	JobDescription string             `json:"job_description,omitempty"`
+	MatchScore     *int               `json:"match_score,omitempty"`
+	CreatedAt      string             `json:"created_at"`
+	UpdatedAt      string             `json:"updated_at"`
 }
 
 // CVListItem represents a CV in list responses (without full cv_data)
@@ -218,14 +219,15 @@ func (s *Service) UpdateCV(ctx context.Context, userID, cvID string, input Updat
 		return nil, ErrNotFound
 	}
 
-	// Build update params
+	// Build update params - fields left as zero value (Valid: false) will preserve existing values via COALESCE
 	params := db.UpdateCVParams{
 		ID:     uuid,
 		UserID: userID,
+		// Name, CvData, TemplateID left as zero values - SQL COALESCE will preserve existing
 	}
 
 	if input.Name != nil {
-		params.Name = *input.Name
+		params.Name = pgtype.Text{String: *input.Name, Valid: true}
 	}
 
 	if input.CVData != nil {
@@ -331,16 +333,17 @@ func cvToResponse(cv db.GeneratedCv) (*CVResponse, error) {
 	}
 
 	resp := &CVResponse{
-		ID:          uuidToString(cv.ID),
-		UserID:      cv.UserID,
-		Name:        cv.Name,
-		CVData:      &cvData,
-		TemplateID:  textToString(cv.TemplateID),
-		JobURL:      textToString(cv.JobUrl),
-		JobTitle:    textToString(cv.JobTitle),
-		CompanyName: textToString(cv.CompanyName),
-		CreatedAt:   timestampToString(cv.CreatedAt),
-		UpdatedAt:   timestampToString(cv.UpdatedAt),
+		ID:             uuidToString(cv.ID),
+		UserID:         cv.UserID,
+		Name:           cv.Name,
+		CVData:         &cvData,
+		TemplateID:     textToString(cv.TemplateID),
+		JobURL:         textToString(cv.JobUrl),
+		JobTitle:       textToString(cv.JobTitle),
+		CompanyName:    textToString(cv.CompanyName),
+		JobDescription: textToString(cv.JobDescription),
+		CreatedAt:      timestampToString(cv.CreatedAt),
+		UpdatedAt:      timestampToString(cv.UpdatedAt),
 	}
 
 	if cv.MatchScore.Valid {

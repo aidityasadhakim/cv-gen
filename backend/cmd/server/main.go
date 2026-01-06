@@ -7,6 +7,7 @@ import (
 	"cv-gen/backend/internal/handlers"
 	"cv-gen/backend/internal/routes"
 	"cv-gen/backend/internal/services/ai"
+	coverletterSvc "cv-gen/backend/internal/services/coverletter"
 	"log"
 	"net/http"
 	"os"
@@ -50,6 +51,14 @@ func main() {
 	// Create handler with dependencies
 	h := handlers.New(queries)
 
+	// Initialize cover letter handler
+	var coverLetterHandler *handlers.CoverLetterHandler
+	if queries != nil {
+		coverLetterService := coverletterSvc.New(queries)
+		coverLetterHandler = handlers.NewCoverLetterHandler(coverLetterService)
+		log.Println("Cover letter service initialized successfully")
+	}
+
 	// Initialize AI service
 	var aiHandler *handlers.AIHandler
 	if cfg.GeminiAPIKey != "" && queries != nil {
@@ -82,7 +91,7 @@ func main() {
 	}))
 
 	// Register routes
-	routes.Register(e, h, aiHandler)
+	routes.Register(e, h, aiHandler, coverLetterHandler)
 
 	// Get port from configuration
 	port := cfg.BackendPort

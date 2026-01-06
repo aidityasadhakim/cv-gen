@@ -15,6 +15,7 @@ export interface CVResponse {
   template_id: string
   job_url?: string
   job_title?: string
+  job_description?: string
   company_name?: string
   match_score?: number
   created_at: string
@@ -40,7 +41,7 @@ export interface CVListItem {
  * Paginated list response
  */
 export interface CVListResponse {
-  cvs: CVListItem[]
+  cvs: Array<CVListItem>
   total: number
   page: number
   page_size: number

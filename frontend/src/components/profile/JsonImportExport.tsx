@@ -3,8 +3,8 @@ import { useState, useRef } from 'react'
 import { useUpdateProfile } from '../../hooks/useProfile'
 import { Button } from '../ui/button'
 import { Textarea } from '../ui/textarea'
-import { Card } from '../ui/card'
-import { H3, Small } from '../ui/typography'
+import { Modal, ModalFooter } from '../ui/modal'
+import { Small } from '../ui/typography'
 
 import type { JSONResume } from '../../types/json-resume'
 
@@ -86,6 +86,12 @@ export function JsonImportExport({ resumeData }: JsonImportExportProps) {
     reader.readAsText(file)
   }
 
+  const handleClose = () => {
+    setIsImportOpen(false)
+    setImportText('')
+    setImportError(null)
+  }
+
   return (
     <div className="flex items-center gap-2">
       <div className="relative">
@@ -135,94 +141,80 @@ export function JsonImportExport({ resumeData }: JsonImportExportProps) {
         Import
       </Button>
 
-      {isImportOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-            <div
-              className="fixed inset-0 bg-charcoal/40 transition-opacity"
-              onClick={() => setIsImportOpen(false)}
+      <Modal
+        isOpen={isImportOpen}
+        onClose={handleClose}
+        title="Import JSON Resume"
+        size="lg"
+      >
+        <div className="space-y-4">
+          <div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json"
+              onChange={handleFileUpload}
+              className="hidden"
             />
-
-            <Card variant="default" className="w-full max-w-lg transform">
-              <div className="p-6">
-                <H3 className="mb-4">Import JSON Resume</H3>
-
-                <div className="space-y-4">
-                  <div>
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept=".json"
-                      onChange={handleFileUpload}
-                      className="hidden"
-                    />
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      className="w-full"
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                      </svg>
-                      Upload JSON File
-                    </Button>
-                  </div>
-
-                  <div className="relative">
-                    <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-border" />
-                    </div>
-                    <div className="relative flex justify-center text-sm">
-                      <span className="bg-warm-white px-2 text-mid-gray">
-                        or paste JSON
-                      </span>
-                    </div>
-                  </div>
-
-                  <Textarea
-                    value={importText}
-                    onChange={(e) => {
-                      setImportText(e.target.value)
-                      setImportError(null)
-                    }}
-                    rows={10}
-                    className="font-mono text-sm"
-                    placeholder='{"basics": {"name": "John Doe", ...}}'
-                  />
-
-                  {importError && (
-                    <Small className="text-coral block">{importError}</Small>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-3 p-6 pt-0">
-                <Button
-                  type="button"
-                  onClick={handleImport}
-                  disabled={!importText.trim() || updateProfile.isPending}
-                  className="flex-1"
-                >
-                  {updateProfile.isPending ? 'Importing...' : 'Import'}
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => {
-                    setIsImportOpen(false)
-                    setImportText('')
-                    setImportError(null)
-                  }}
-                  className="flex-1"
-                >
-                  Cancel
-                </Button>
-              </div>
-            </Card>
+            <Button
+              type="button"
+              variant="secondary"
+              className="w-full"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+              Upload JSON File
+            </Button>
           </div>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-border" />
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="bg-warm-white px-2 text-mid-gray">
+                or paste JSON
+              </span>
+            </div>
+          </div>
+
+          <Textarea
+            value={importText}
+            onChange={(e) => {
+              setImportText(e.target.value)
+              setImportError(null)
+            }}
+            rows={10}
+            className="font-mono text-sm"
+            placeholder='{"basics": {"name": "John Doe", ...}}'
+          />
+
+          {importError && (
+            <Small className="text-coral block">{importError}</Small>
+          )}
         </div>
-      )}
+
+        <ModalFooter className="flex-col sm:flex-row">
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={handleClose}
+            className="flex-1 order-2 sm:order-1"
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            onClick={handleImport}
+            disabled={!importText.trim() || updateProfile.isPending}
+            className="flex-1 order-1 sm:order-2"
+          >
+            {updateProfile.isPending ? 'Importing...' : 'Import'}
+          </Button>
+        </ModalFooter>
+      </Modal>
     </div>
   )
 }

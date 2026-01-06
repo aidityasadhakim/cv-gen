@@ -26,7 +26,7 @@ export type ThemeComponent = React.ComponentType<ThemeProps>
 /**
  * Registry of available themes
  */
-export const THEMES: ThemeInfo[] = [
+export const THEMES: Array<ThemeInfo> = [
   {
     id: 'professional',
     name: 'Professional',
@@ -41,6 +41,11 @@ export const THEMES: ThemeInfo[] = [
     id: 'minimal',
     name: 'Minimal',
     description: 'Simple, content-focused layout',
+  },
+  {
+    id: 'academic',
+    name: 'Academic',
+    description: 'LaTeX-inspired layout for academic and research roles',
   },
 ]
 

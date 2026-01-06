@@ -113,3 +113,41 @@ func (h *AIHandler) GetCredits(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, credits)
 }
+
+// GenerateCoverLetter handles POST /api/ai/generate-cover-letter
+func (h *AIHandler) GenerateCoverLetter(c echo.Context) error {
+	userID, err := appMiddleware.RequireUserID(c)
+	if err != nil {
+		return err
+	}
+
+	if h.aiService == nil {
+		return echo.NewHTTPError(http.StatusServiceUnavailable, "AI service not available")
+	}
+
+	var req ai.GenerateCoverLetterRequest
+	if err := c.Bind(&req); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid request body")
+	}
+
+	if req.JobTitle == "" {
+		return echo.NewHTTPError(http.StatusBadRequest, "job_title is required")
+	}
+
+	if req.CompanyName == "" {
+		return echo.NewHTTPError(http.StatusBadRequest, "company_name is required")
+	}
+
+	response, err := h.aiService.GenerateCoverLetter(c.Request().Context(), userID, &req)
+	if err != nil {
+		if errors.Is(err, ai.ErrOutOfCredits) {
+			return echo.NewHTTPError(http.StatusPaymentRequired, "you have used all your free generation credits")
+		}
+		if errors.Is(err, ai.ErrProfileNotFound) {
+			return echo.NewHTTPError(http.StatusBadRequest, "please complete your profile before generating cover letters")
+		}
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to generate cover letter: "+err.Error())
+	}
+
+	return c.JSON(http.StatusOK, response)
+}

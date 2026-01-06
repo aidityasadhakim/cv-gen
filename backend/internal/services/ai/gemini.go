@@ -108,6 +108,18 @@ func (g *GeminiClient) TailorCV(ctx context.Context, profileJSON string, jobDesc
 	return responseText, nil
 }
 
+// GenerateCoverLetter generates a cover letter based on the profile and job details
+func (g *GeminiClient) GenerateCoverLetter(ctx context.Context, profileJSON string, jobTitle string, companyName string, jobDescription string, cvSummary string) (string, error) {
+	prompt := buildCoverLetterPrompt(profileJSON, jobTitle, companyName, jobDescription, cvSummary)
+
+	responseText, err := g.GenerateText(ctx, prompt)
+	if err != nil {
+		return "", err
+	}
+
+	return responseText, nil
+}
+
 // Close closes the Gemini client (no-op for this client)
 func (g *GeminiClient) Close() error {
 	// The google.golang.org/genai client doesn't require explicit closing

@@ -189,6 +189,104 @@ func (s *Service) GetCredits(ctx context.Context, userID string) (*CreditsRespon
 	}, nil
 }
 
+// GenerateCoverLetter generates a cover letter based on profile and job details
+func (s *Service) GenerateCoverLetter(ctx context.Context, userID string, req *GenerateCoverLetterRequest) (*GenerateCoverLetterResponse, error) {
+	if req.JobTitle == "" || req.CompanyName == "" {
+		return nil, errors.New("job_title and company_name are required")
+	}
+
+	// Check credits
+	credits, err := s.checkCredits(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get user's profile
+	profileJSON, err := s.getProfileJSON(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get job description - either from request or from linked CV
+	jobDescription := req.JobDescription
+	cvSummary := ""
+	var cvIDPtr *string
+
+	if req.CVID != "" {
+		// Get CV to use its job description and summary
+		var cvUUID pgtype.UUID
+		if err := cvUUID.Scan(req.CVID); err == nil {
+			cv, err := s.queries.GetCVByUserAndId(ctx, db.GetCVByUserAndIdParams{
+				ID:     cvUUID,
+				UserID: userID,
+			})
+			if err == nil {
+				if jobDescription == "" && cv.JobDescription.Valid {
+					jobDescription = cv.JobDescription.String
+				}
+				// Try to get summary from CV data
+				var cvData models.JSONResume
+				if json.Unmarshal(cv.CvData, &cvData) == nil && cvData.Basics != nil && cvData.Basics.Summary != "" {
+					cvSummary = cvData.Basics.Summary
+				}
+				cvIDStr := uuidToString(cv.ID)
+				cvIDPtr = &cvIDStr
+			}
+		}
+	}
+
+	if jobDescription == "" {
+		jobDescription = fmt.Sprintf("Position: %s at %s", req.JobTitle, req.CompanyName)
+	}
+
+	// Generate cover letter
+	content, err := s.gemini.GenerateCoverLetter(ctx, profileJSON, req.JobTitle, req.CompanyName, jobDescription, cvSummary)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate cover letter: %w", err)
+	}
+
+	// Save to database
+	var cvUUID pgtype.UUID
+	if req.CVID != "" {
+		cvUUID.Scan(req.CVID)
+	}
+
+	savedCL, err := s.queries.CreateCoverLetter(ctx, db.CreateCoverLetterParams{
+		UserID:      userID,
+		CvID:        cvUUID,
+		Content:     content,
+		JobTitle:    pgtype.Text{String: req.JobTitle, Valid: true},
+		CompanyName: pgtype.Text{String: req.CompanyName, Valid: true},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to save cover letter: %w", err)
+	}
+
+	// Increment credits used
+	updatedCredits, err := s.queries.IncrementCreditsUsed(ctx, userID)
+	if err != nil {
+		fmt.Printf("warning: failed to increment credits for user %s: %v\n", userID, err)
+	}
+
+	remaining := calculateRemainingCredits(updatedCredits)
+	if !updatedCredits.ID.Valid {
+		remaining = calculateRemainingCredits(credits)
+		remaining--
+	}
+
+	return &GenerateCoverLetterResponse{
+		CoverLetter: &CoverLetterData{
+			ID:          uuidToString(savedCL.ID),
+			Content:     content,
+			JobTitle:    req.JobTitle,
+			CompanyName: req.CompanyName,
+			CVID:        cvIDPtr,
+			CreatedAt:   timestampToString(savedCL.CreatedAt),
+		},
+		CreditsRemaining: int(remaining),
+	}, nil
+}
+
 // checkCredits verifies the user has remaining credits
 func (s *Service) checkCredits(ctx context.Context, userID string) (db.UserCredit, error) {
 	credits, err := s.queries.GetOrCreateUserCredits(ctx, userID)

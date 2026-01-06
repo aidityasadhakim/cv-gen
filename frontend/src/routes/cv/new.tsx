@@ -9,6 +9,7 @@ import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
 import { Label } from '../../components/ui/label'
 import { Body, H1, H2, Small } from '../../components/ui/typography'
+import { useToast } from '../../components/ui/toast'
 import { THEMES, getDefaultThemeId } from '../../lib/themes'
 import { useCreateCV } from '../../hooks/useCVs'
 import { useAnalyzeJob, useCredits, useGenerateCV } from '../../hooks/useAI'
@@ -38,6 +39,7 @@ type TailoredStep = 'input' | 'analysis' | 'generating' | 'complete'
 
 function NewCVContent() {
   const navigate = useNavigate()
+  const toast = useToast()
   const [creationType, setCreationType] = useState<CVCreationType | null>(null)
 
   // Regular CV creation state
@@ -67,10 +69,12 @@ function NewCVContent() {
         template_id: templateId,
       })
       if (cv) {
+        toast.success('CV created successfully')
         navigate({ to: '/cv/$cvId', params: { cvId: cv.id } })
       }
     } catch (err) {
       console.error('Failed to create CV:', err)
+      toast.error('Failed to create CV')
     }
   }
 
@@ -83,9 +87,11 @@ function NewCVContent() {
       if (result?.analysis) {
         setAnalysis(result.analysis)
         setTailoredStep('analysis')
+        toast.success('Job analysis complete')
       }
     } catch (err) {
       console.error('Failed to analyze job:', err)
+      toast.error('Failed to analyze job description')
     }
   }
 
@@ -101,10 +107,12 @@ function NewCVContent() {
         company_name: companyName,
       })
       if (result?.cv) {
+        toast.success('CV generated successfully')
         navigate({ to: '/cv/$cvId', params: { cvId: result.cv.id } })
       }
     } catch (err) {
       console.error('Failed to generate CV:', err)
+      toast.error('Failed to generate CV')
       setTailoredStep('analysis')
     }
   }

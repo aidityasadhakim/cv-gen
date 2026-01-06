@@ -281,3 +281,41 @@ CRITICAL RULES:
 
 Return a valid JSON Resume. Do not include any markdown formatting or code blocks.`, profileJSON, jobDescription, analysisJSON)
 }
+
+// buildCoverLetterPrompt creates the prompt for cover letter generation
+func buildCoverLetterPrompt(profileJSON string, jobTitle string, companyName string, jobDescription string, cvSummary string) string {
+	return fmt.Sprintf(`You are an expert cover letter writer. Create a compelling cover letter.
+
+Candidate Profile (JSON Resume format):
+%s
+
+Target Position: %s at %s
+
+Job Description:
+%s
+
+Tailored CV Summary:
+%s
+
+Write a professional cover letter that:
+1. Opens with a compelling hook (not "I am writing to apply...")
+2. Highlights 2-3 most relevant qualifications from the candidate's experience
+3. Shows enthusiasm for the role and company
+4. Demonstrates understanding of what the role requires
+5. Ends with a confident call to action
+6. Keeps length to 3-4 paragraphs (250-350 words)
+
+Guidelines:
+- Be specific, not generic
+- Use active voice
+- Avoid clichés
+- Match tone to the company culture (startup vs corporate)
+- Reference specific experiences from the profile
+
+CRITICAL RULES:
+- Do NOT invent or fabricate any experience, skills, or achievements
+- Only use information that exists in the original profile
+- Keep all company names, job titles, and factual information accurate
+
+Return plain text only (no markdown formatting, no headers, no salutation like "Dear Hiring Manager" - just the body paragraphs).`, profileJSON, jobTitle, companyName, jobDescription, cvSummary)
+}

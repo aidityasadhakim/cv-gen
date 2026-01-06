@@ -58,7 +58,7 @@ export function MinimalTheme({ resume, className }: ThemeProps) {
 
       {/* Summary */}
       {basics?.summary && (
-        <section className="mb-6 text-center max-w-2xl mx-auto">
+        <section className="mb-6 text-center mx-auto">
           <p className="text-sm text-mid-gray leading-relaxed">{basics.summary}</p>
         </section>
       )}

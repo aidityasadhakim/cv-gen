@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProfileIndexRouteImport } from './routes/profile/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
 import { Route as CvNewRouteImport } from './routes/cv/new'
+import { Route as CoverLetterIdRouteImport } from './routes/cover-letter/$id'
 import { Route as AuthSignUpRouteImport } from './routes/auth/sign-up'
 import { Route as AuthSignInRouteImport } from './routes/auth/sign-in'
 import { Route as CvCvIdIndexRouteImport } from './routes/cv/$cvId/index'
@@ -37,6 +38,11 @@ const CvNewRoute = CvNewRouteImport.update({
   path: '/cv/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CoverLetterIdRoute = CoverLetterIdRouteImport.update({
+  id: '/cover-letter/$id',
+  path: '/cover-letter/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthSignUpRoute = AuthSignUpRouteImport.update({
   id: '/auth/sign-up',
   path: '/auth/sign-up',
@@ -57,6 +63,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
+  '/cover-letter/$id': typeof CoverLetterIdRoute
   '/cv/new': typeof CvNewRoute
   '/dashboard': typeof DashboardIndexRoute
   '/profile': typeof ProfileIndexRoute
@@ -66,6 +73,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
+  '/cover-letter/$id': typeof CoverLetterIdRoute
   '/cv/new': typeof CvNewRoute
   '/dashboard': typeof DashboardIndexRoute
   '/profile': typeof ProfileIndexRoute
@@ -76,6 +84,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
+  '/cover-letter/$id': typeof CoverLetterIdRoute
   '/cv/new': typeof CvNewRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/profile/': typeof ProfileIndexRoute
@@ -87,6 +96,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth/sign-in'
     | '/auth/sign-up'
+    | '/cover-letter/$id'
     | '/cv/new'
     | '/dashboard'
     | '/profile'
@@ -96,6 +106,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth/sign-in'
     | '/auth/sign-up'
+    | '/cover-letter/$id'
     | '/cv/new'
     | '/dashboard'
     | '/profile'
@@ -105,6 +116,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth/sign-in'
     | '/auth/sign-up'
+    | '/cover-letter/$id'
     | '/cv/new'
     | '/dashboard/'
     | '/profile/'
@@ -115,6 +127,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthSignInRoute: typeof AuthSignInRoute
   AuthSignUpRoute: typeof AuthSignUpRoute
+  CoverLetterIdRoute: typeof CoverLetterIdRoute
   CvNewRoute: typeof CvNewRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
   ProfileIndexRoute: typeof ProfileIndexRoute
@@ -151,6 +164,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CvNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cover-letter/$id': {
+      id: '/cover-letter/$id'
+      path: '/cover-letter/$id'
+      fullPath: '/cover-letter/$id'
+      preLoaderRoute: typeof CoverLetterIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth/sign-up': {
       id: '/auth/sign-up'
       path: '/auth/sign-up'
@@ -179,6 +199,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthSignInRoute: AuthSignInRoute,
   AuthSignUpRoute: AuthSignUpRoute,
+  CoverLetterIdRoute: CoverLetterIdRoute,
   CvNewRoute: CvNewRoute,
   DashboardIndexRoute: DashboardIndexRoute,
   ProfileIndexRoute: ProfileIndexRoute,

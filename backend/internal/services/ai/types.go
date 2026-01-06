@@ -58,3 +58,27 @@ type CreditsResponse struct {
 	TotalGenerations     int32 `json:"total_generations"`
 	Remaining            int32 `json:"remaining"`
 }
+
+// GenerateCoverLetterRequest represents a request to generate a cover letter
+type GenerateCoverLetterRequest struct {
+	CVID           string `json:"cv_id,omitempty"`
+	JobTitle       string `json:"job_title"`
+	CompanyName    string `json:"company_name"`
+	JobDescription string `json:"job_description,omitempty"`
+}
+
+// GenerateCoverLetterResponse represents the response from cover letter generation
+type GenerateCoverLetterResponse struct {
+	CoverLetter      *CoverLetterData `json:"cover_letter"`
+	CreditsRemaining int              `json:"credits_remaining"`
+}
+
+// CoverLetterData represents a generated cover letter
+type CoverLetterData struct {
+	ID          string  `json:"id"`
+	Content     string  `json:"content"`
+	JobTitle    string  `json:"job_title"`
+	CompanyName string  `json:"company_name"`
+	CVID        *string `json:"cv_id,omitempty"`
+	CreatedAt   string  `json:"created_at"`
+}

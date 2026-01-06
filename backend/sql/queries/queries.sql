@@ -104,9 +104,9 @@ RETURNING *;
 -- name: UpdateCV :one
 UPDATE generated_cvs
 SET 
-    name = COALESCE($3, name),
-    cv_data = COALESCE($4, cv_data),
-    template_id = COALESCE($5, template_id),
+    name = COALESCE(sqlc.narg('name'), name),
+    cv_data = COALESCE(sqlc.narg('cv_data'), cv_data),
+    template_id = COALESCE(sqlc.narg('template_id'), template_id),
     updated_at = NOW()
 WHERE id = $1 AND user_id = $2
 RETURNING *;

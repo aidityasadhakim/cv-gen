@@ -1,13 +1,16 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useUser } from '@clerk/clerk-react'
+import { useState } from 'react'
 
 import { ProtectedRoute } from '../../components/ProtectedRoute'
 import { CVList } from '../../components/cv/CVList'
+import { CoverLetterList } from '../../components/cover-letter/CoverLetterList'
 
 import { Container } from '../../components/ui/container'
 import { Section } from '../../components/ui/section'
 import { Card } from '../../components/ui/card'
 import { H1, H2, Body, Small } from '../../components/ui/typography'
+import { cn } from '../../lib/utils'
 
 export const Route = createFileRoute('/dashboard/')({
   component: DashboardPage,
@@ -21,8 +24,11 @@ function DashboardPage() {
   )
 }
 
+type Tab = 'cvs' | 'cover-letters'
+
 function DashboardContent() {
   const { user } = useUser()
+  const [activeTab, setActiveTab] = useState<Tab>('cvs')
 
   return (
     <Section spacing="lg">
@@ -94,17 +100,56 @@ function DashboardContent() {
                   </div>
                 </div>
                 <div className="min-w-0 flex-1">
-                  <Body className="font-semibold text-charcoal">My CVs</Body>
-                  <Small className="text-mid-gray">View and edit your generated CVs</Small>
+                  <Body className="font-semibold text-charcoal">My Documents</Body>
+                  <Small className="text-mid-gray">View and edit your CVs and cover letters</Small>
                 </div>
               </div>
             </Card>
           </div>
         </div>
 
+        {/* Tabs */}
+        <div className="mb-6">
+          <div className="flex space-x-1 border-b border-gray-200">
+            <button
+              onClick={() => setActiveTab('cvs')}
+              className={cn(
+                'px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px',
+                activeTab === 'cvs'
+                  ? 'text-amber border-amber'
+                  : 'text-mid-gray border-transparent hover:text-charcoal'
+              )}
+            >
+              CVs
+            </button>
+            <button
+              onClick={() => setActiveTab('cover-letters')}
+              className={cn(
+                'px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px',
+                activeTab === 'cover-letters'
+                  ? 'text-amber border-amber'
+                  : 'text-mid-gray border-transparent hover:text-charcoal'
+              )}
+            >
+              Cover Letters
+            </button>
+          </div>
+        </div>
+
+        {/* Tab Content */}
         <div>
-          <H2 className="text-charcoal mb-6">Your CVs</H2>
-          <CVList />
+          {activeTab === 'cvs' && (
+            <>
+              <H2 className="text-charcoal mb-6">Your CVs</H2>
+              <CVList />
+            </>
+          )}
+          {activeTab === 'cover-letters' && (
+            <>
+              <H2 className="text-charcoal mb-6">Your Cover Letters</H2>
+              <CoverLetterList />
+            </>
+          )}
         </div>
       </Container>
     </Section>

@@ -606,7 +606,7 @@ RETURNING id, user_id, name, job_url, job_title, company_name, job_description, 
 type UpdateCVParams struct {
 	ID         pgtype.UUID `json:"id"`
 	UserID     string      `json:"user_id"`
-	Name       string      `json:"name"`
+	Name       pgtype.Text `json:"name"`
 	CvData     []byte      `json:"cv_data"`
 	TemplateID pgtype.Text `json:"template_id"`
 }

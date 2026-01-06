@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { Link } from '@tanstack/react-router'
 
 import { Card } from '../ui/card'
@@ -13,7 +14,7 @@ interface CVCardProps {
   onDelete?: (id: string) => void
 }
 
-export function CVCard({ cv, onDuplicate, onDelete }: CVCardProps) {
+export const CVCard = memo(function CVCard({ cv, onDuplicate, onDelete }: CVCardProps) {
   const theme = getThemeInfo(cv.template_id)
   const createdDate = new Date(cv.created_at).toLocaleDateString('en-US', {
     year: 'numeric',
@@ -99,7 +100,7 @@ export function CVCard({ cv, onDuplicate, onDelete }: CVCardProps) {
       </div>
     </Card>
   )
-}
+})
 
 function DuplicateIcon() {
   return (
