@@ -48,7 +48,7 @@ services:
   # ================================
   backend:
     build:
-      context: ../backend
+      context: ../../backend
       target: prod
     container_name: cvgen-prod-backend
     restart: unless-stopped

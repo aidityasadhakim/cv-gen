@@ -31,7 +31,7 @@ services:
   # ================================
   backend:
     build:
-      context: ../backend
+      context: ../../backend
       target: dev
     container_name: cvgen-dev-backend
     restart: unless-stopped
@@ -57,7 +57,7 @@ services:
   # ================================
   frontend:
     build:
-      context: ../frontend
+      context: ../../frontend
       target: dev
     container_name: cvgen-dev-frontend
     restart: unless-stopped

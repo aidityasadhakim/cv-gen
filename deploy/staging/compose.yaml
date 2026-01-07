@@ -29,7 +29,7 @@ services:
   # ================================
   backend:
     build:
-      context: ../backend
+      context: ../../backend
       target: prod
     container_name: cvgen-staging-backend
     restart: unless-stopped
