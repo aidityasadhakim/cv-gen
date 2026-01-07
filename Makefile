@@ -2,10 +2,10 @@
 	dev-up dev-down dev-logs dev-status dev-shell \
 	staging-up staging-down staging-logs staging-status staging-logs-backend staging-logs-caddy \
 	staging-shell-backend staging-db-shell \
-	staging-deploy staging-restart staging-rebuild \
+	staging-deploy staging-restart staging-rebuild staging-build-frontend \
 	prod-up prod-down prod-logs prod-status prod-logs-backend prod-logs-caddy \
 	prod-shell-backend prod-db-shell \
-	prod-restart prod-rebuild prod-deploy prod-migrate
+	prod-restart prod-rebuild prod-deploy prod-migrate prod-build-frontend
 
 .DEFAULT_GOAL := help
 
@@ -85,6 +85,15 @@ build-backend:
 ## Build frontend only
 build-frontend:
 	docker compose build frontend
+
+## Build frontend and copy to deploy directory (for Caddy static file serving)
+build-frontend-deploy:
+	@echo "Building frontend..."
+	cd frontend && bun install && bun run build
+	@echo "Copying build to deploy/frontend/dist..."
+	sudo rm -rf deploy/frontend/dist
+	sudo cp -r frontend/dist deploy/frontend/dist
+	@echo "Frontend built and deployed successfully!"
 
 # ================================
 # Cleanup
@@ -194,6 +203,17 @@ staging-rebuild:
 staging-deploy:
 	cd deploy/staging && docker compose --env-file ../../.env down && docker compose --env-file ../../.env up --build -d
 
+## Build and deploy frontend for staging
+staging-build-frontend:
+	@echo "Building frontend for staging..."
+	cd frontend && bun install && bun run build
+	@echo "Copying build to deploy/frontend/dist..."
+	sudo rm -rf deploy/frontend/dist
+	sudo cp -r frontend/dist deploy/frontend/dist
+	@echo "Restarting Caddy to pick up new files..."
+	cd deploy/staging && docker compose --env-file ../../.env restart caddy
+	@echo "Frontend built and deployed to staging!"
+
 # ================================
 # Deploy - Production
 # ================================
@@ -248,6 +268,17 @@ prod-deploy:
 	@echo "⚠️  Starting full production deployment..."
 	@echo "⚠️  This will restart all services!"
 	cd deploy/prod && docker compose --env-file ../../.env down && docker compose --env-file ../../.env up --build -d
+
+## Build and deploy frontend for production
+prod-build-frontend:
+	@echo "Building frontend for production..."
+	cd frontend && bun install && bun run build
+	@echo "Copying build to deploy/frontend/dist..."
+	sudo rm -rf deploy/frontend/dist
+	sudo cp -r frontend/dist deploy/frontend/dist
+	@echo "Restarting Caddy to pick up new files..."
+	cd deploy/prod && docker compose --env-file ../../.env restart caddy
+	@echo "Frontend built and deployed to production!"
 
 ## Run production database migrations
 prod-migrate:
