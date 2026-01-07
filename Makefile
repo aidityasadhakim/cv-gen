@@ -1,4 +1,6 @@
 .PHONY: help dev dev-detach down logs logs-service restart status \
+	db-migrate db-rollback db-status db-reset db-shell \
+	sqlc clean clean-volumes shell-frontend frontend-install \
 	dev-up dev-down dev-logs dev-status dev-shell \
 	staging-up staging-down staging-logs staging-status staging-shell-backend staging-db-shell \
 	staging-deploy staging-restart staging-rebuild staging-migrate \
@@ -39,6 +41,55 @@ restart:
 ## Check service status
 status:
 	docker compose ps
+
+# ================================
+# Database (Local Development)
+# ================================
+
+## Run database migrations
+db-migrate:
+	docker compose exec backend goose -dir ./sql/migrations postgres "$$DATABASE_URL" up
+
+## Rollback last migration
+db-rollback:
+	docker compose exec backend goose -dir ./sql/migrations postgres "$$DATABASE_URL" down
+
+## Check migration status
+db-status:
+	docker compose exec backend goose -dir ./sql/migrations postgres "$$DATABASE_URL" status
+
+## Reset database (drop all tables and re-run migrations)
+db-reset:
+	docker compose exec backend goose -dir ./sql/migrations postgres "$$DATABASE_URL" reset
+	docker compose exec backend goose -dir ./sql/migrations postgres "$$DATABASE_URL" up
+
+## Connect to database via psql
+db-shell:
+	docker compose exec db psql -U cvgen -d cvgen_db
+
+# ================================
+# Code Generation
+# ================================
+
+## Generate SQLC code
+sqlc:
+	docker compose exec backend sqlc generate
+
+# ================================
+# Cleanup
+# ================================
+
+## Remove all containers, volumes, and images
+clean:
+	docker compose down -v --rmi local --remove-orphans
+
+## Remove only volumes (keeps images)
+clean-volumes:
+	docker compose down -v
+
+## Install frontend dependencies
+frontend-install:
+	docker compose exec frontend bun install
 
 # ================================
 # Deploy - Development
