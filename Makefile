@@ -46,22 +46,26 @@ status:
 # Database (Local Development)
 # ================================
 
+## Install goose locally
+goose-install:
+	go install github.com/presslabs/goose@latest
+
 ## Run database migrations
 db-migrate:
-	docker compose exec backend goose -dir ./sql/migrations postgres "$$DATABASE_URL" up
+	goose -dir backend/sql/migrations postgres "$(DATABASE_URL)" up
 
 ## Rollback last migration
 db-rollback:
-	docker compose exec backend goose -dir ./sql/migrations postgres "$$DATABASE_URL" down
+	goose -dir backend/sql/migrations postgres "$(DATABASE_URL)" down
 
 ## Check migration status
 db-status:
-	docker compose exec backend goose -dir ./sql/migrations postgres "$$DATABASE_URL" status
+	goose -dir backend/sql/migrations postgres "$(DATABASE_URL)" status
 
 ## Reset database (drop all tables and re-run migrations)
 db-reset:
-	docker compose exec backend goose -dir ./sql/migrations postgres "$$DATABASE_URL" reset
-	docker compose exec backend goose -dir ./sql/migrations postgres "$$DATABASE_URL" up
+	goose -dir backend/sql/migrations postgres "$(DATABASE_URL)" reset
+	goose -dir backend/sql/migrations postgres "$(DATABASE_URL)" up
 
 ## Connect to database via psql
 db-shell:
@@ -157,7 +161,7 @@ staging-deploy:
 
 ## Run staging database migrations
 staging-migrate:
-	cd deploy/staging && docker compose --env-file ../../.env exec backend goose -dir ./sql/migrations postgres "$$DATABASE_URL" up
+	goose -dir backend/sql/migrations postgres "$(DATABASE_URL)" up
 
 # ================================
 # Deploy - Production
@@ -206,7 +210,7 @@ prod-deploy:
 
 ## Run production database migrations
 prod-migrate:
-	cd deploy/prod && docker compose --env-file ../../.env exec backend goose -dir ./sql/migrations postgres "$$DATABASE_URL" up
+	goose -dir backend/sql/migrations postgres "$(DATABASE_URL)" up
 
 # ================================
 # Frontend Build
