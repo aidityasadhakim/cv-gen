@@ -48,7 +48,7 @@ status:
 
 ## Install goose locally
 goose-install:
-	go install github.com/presslabs/goose@latest
+	go install github.com/pressly/goose/v3/cmd/goose@latest
 
 ## Run database migrations
 db-migrate:
