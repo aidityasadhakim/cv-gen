@@ -26,39 +26,6 @@
 }
 
 # =============================================================================
-# Staging Environment
-# =============================================================================
-cvstaging.aidityas.me {
-    # Health check endpoint (for load balancers)
-    @health_check {
-        path /health
-    }
-    respond @health_check "OK" 200 {
-        close
-    }
-
-    # API requests - proxy to backend
-    @api {
-        path /api/*
-    }
-    reverse_proxy @api backend:8080 {
-        transport http {
-            read_buffer 8192
-        }
-    }
-
-    # Serve frontend static files from /srv (mounted from frontend/dist)
-    root * /srv
-    try_files {path} /index.html
-    file_server {
-        precompressed gzip
-    }
-
-    # Enable compression
-    encode gzip zstd
-}
-
-# =============================================================================
 # Production Environment
 # =============================================================================
 cv.aidityas.me {
@@ -66,14 +33,8 @@ cv.aidityas.me {
     @www {
         host www.cv.aidityas.me
     }
-    redirect @www https://cv.aidityas.me
-
-    # Health check endpoint
-    @health_check {
-        path /health
-    }
-    respond @health_check "OK" 200 {
-        close
+    handle @www {
+        redir https://cv.aidityas.me
     }
 
     # Security headers
@@ -87,21 +48,50 @@ cv.aidityas.me {
         -X-Powered-By
     }
 
-    # API requests - proxy to backend
-    @api {
-        path /api/*
-    }
-    reverse_proxy @api backend:8080 {
-        transport http {
-            read_buffer 8192
+    # Handle API requests FIRST
+    @api path /api/*
+    handle @api {
+        reverse_proxy backend:8080 {
+            transport http {
+                read_buffer 8192
+            }
         }
     }
 
-    # Serve frontend static files from /srv
-    root * /srv
-    try_files {path} /index.html
-    file_server {
-        precompressed gzip
+    # Handle everything else (static files)
+    handle {
+        root * /srv
+        try_files {path} /index.html
+        file_server {
+            precompressed gzip
+        }
+    }
+
+    # Enable compression
+    encode gzip zstd
+}
+
+# =============================================================================
+# Staging Environment
+# =============================================================================
+cvstaging.aidityas.me {
+    # Handle API requests FIRST
+    @api path /api/*
+    handle @api {
+        reverse_proxy backend:8080 {
+            transport http {
+                read_buffer 8192
+            }
+        }
+    }
+
+    # Handle everything else (static files)
+    handle {
+        root * /srv
+        try_files {path} /index.html
+        file_server {
+            precompressed gzip
+        }
     }
 
     # Enable compression
