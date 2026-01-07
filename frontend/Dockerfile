@@ -21,7 +21,7 @@ EXPOSE 3000
 CMD ["bun", "run", "dev", "--host"]
 
 # ================================
-# Build Stage
+# Build Stage (for Caddy static serving)
 # ================================
 FROM oven/bun:1 AS builder
 
@@ -40,18 +40,15 @@ COPY . .
 RUN bun run build
 
 # ================================
-# Production Stage (Nginx)
+# Dist Stage (for Caddy)
 # ================================
-FROM nginx:alpine AS prod
-
-# Copy custom nginx config
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# This stage produces static files that Caddy will serve directly
+# No server needed - Caddy handles static file serving
+FROM scratch AS dist
 
 # Copy built assets from builder
-COPY --from=builder /app/dist /usr/share/nginx/html
+COPY --from=builder /app/dist /
 
-# Expose port
-EXPOSE 80
-
-# Run nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Metadata for the image
+LABEL maintainer="cv-gen"
+LABEL description="CV-Gen frontend static files"

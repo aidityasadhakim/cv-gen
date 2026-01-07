@@ -1,0 +1,109 @@
+# Caddyfile for CV-Gen
+# Architecture: Pure Caddy (no Nginx)
+# - Automatic HTTPS via Let's Encrypt
+# - Static file serving from /srv (frontend build)
+# - Reverse proxy for /api/* to backend
+#
+# ⚠️  IMPORTANT: Ensure DNS is configured before starting
+#    Run: make prod-up or make staging-up
+
+# =============================================================================
+# Global Options
+# =============================================================================
+{
+    # Email for Let's Encrypt
+    email admin@cv.aidityas.me
+
+    # Runtime configuration
+    admin off
+
+    # Logging
+    log {
+        level INFO
+        format json
+        output stdout
+    }
+}
+
+# =============================================================================
+# Staging Environment
+# =============================================================================
+cvstaging.aidityas.me {
+    # Health check endpoint (for load balancers)
+    @health_check {
+        path /health
+    }
+    respond @health_check "OK" 200 {
+        close
+    }
+
+    # API requests - proxy to backend
+    @api {
+        path /api/*
+    }
+    reverse_proxy @api backend:8080 {
+        transport http {
+            read_buffer 8192
+        }
+    }
+
+    # Serve frontend static files from /srv (mounted from frontend/dist)
+    root * /srv
+    try_files {path} /index.html
+    file_server {
+        precompressed gzip
+    }
+
+    # Enable compression
+    encode gzip zstd
+}
+
+# =============================================================================
+# Production Environment
+# =============================================================================
+cv.aidityas.me {
+    # Redirect www to non-www
+    @www {
+        host www.cv.aidityas.me
+    }
+    redirect @www https://cv.aidityas.me
+
+    # Health check endpoint
+    @health_check {
+        path /health
+    }
+    respond @health_check "OK" 200 {
+        close
+    }
+
+    # Security headers
+    header {
+        X-Frame-Options "SAMEORIGIN"
+        X-Content-Type-Options "nosniff"
+        X-XSS-Protection "1; mode=block"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Permissions-Policy "geolocation=(), microphone=(), camera=()"
+        -Server
+        -X-Powered-By
+    }
+
+    # API requests - proxy to backend
+    @api {
+        path /api/*
+    }
+    reverse_proxy @api backend:8080 {
+        transport http {
+            read_buffer 8192
+        }
+    }
+
+    # Serve frontend static files from /srv
+    root * /srv
+    try_files {path} /index.html
+    file_server {
+        precompressed gzip
+    }
+
+    # Enable compression
+    encode gzip zstd
+}

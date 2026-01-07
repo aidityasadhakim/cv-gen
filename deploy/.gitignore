@@ -1,0 +1,20 @@
+# Environment files - NEVER commit these!
+.env
+.env.local
+.env.*.local
+
+# Docker compose overrides
+docker-compose.override.yml
+
+# Logs
+*.log
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

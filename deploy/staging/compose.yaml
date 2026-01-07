@@ -1,0 +1,90 @@
+# Staging Docker Compose
+# Architecture: Pure Caddy (no Nginx)
+# Usage: cd deploy/staging && docker compose up -d
+
+services:
+  # ================================
+  # PostgreSQL Database
+  # ================================
+  db:
+    image: postgres:16-alpine
+    container_name: cvgen-staging-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-cvgen}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cvgen_staging_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-cvgen_staging_db}
+    volumes:
+      - staging_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-cvgen} -d ${POSTGRES_DB:-cvgen_staging_db}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - cvgen-staging-network
+
+  # ================================
+  # Go Backend (Production Build)
+  # ================================
+  backend:
+    build:
+      context: ../backend
+      target: prod
+    container_name: cvgen-staging-backend
+    restart: unless-stopped
+    ports:
+      - "8080"
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgres://cvgen:cvgen_staging_secret@db:5432/cvgen_staging_db?sslmode=disable}
+      BACKEND_PORT: ${BACKEND_PORT:-8080}
+      BACKEND_HOST: ${BACKEND_HOST:-0.0.0.0}
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - cvgen-staging-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8080/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # ================================
+  # Caddy Reverse Proxy + Static File Server
+  # ================================
+  caddy:
+    image: caddy:alpine
+    container_name: cvgen-staging-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ../Caddyfile:/etc/caddy/Caddyfile:ro
+      - ../frontend/dist:/srv:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - cvgen-staging-network
+    cap_add:
+      - NET_ADMIN
+
+networks:
+  cvgen-staging-network:
+    name: cvgen-staging-network
+    driver: bridge
+
+volumes:
+  staging_postgres_data:
+    name: cvgen-staging-postgres-data
+  caddy_data:
+    name: cvgen-staging-caddy-data
+  caddy_config:
+    name: cvgen-staging-caddy-config

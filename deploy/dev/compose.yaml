@@ -1,0 +1,86 @@
+# Development Docker Compose
+# This configuration is for local development with hot-reload support
+# Usage: cd deploy/dev && docker compose up -d
+
+services:
+  # ================================
+  # PostgreSQL Database
+  # ================================
+  db:
+    image: postgres:16-alpine
+    container_name: cvgen-dev-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-cvgen}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cvgen_dev_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-cvgen_dev_db}
+    volumes:
+      - dev_postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-cvgen} -d ${POSTGRES_DB:-cvgen_dev_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cvgen-dev-network
+
+  # ================================
+  # Go Backend (Development - with Air hot-reload)
+  # ================================
+  backend:
+    build:
+      context: ../backend
+      target: dev
+    container_name: cvgen-dev-backend
+    restart: unless-stopped
+    volumes:
+      - ../backend:/app
+      - dev_go_modules:/go/pkg/mod
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgres://cvgen:cvgen_dev_secret@db:5432/cvgen_dev_db?sslmode=disable}
+      BACKEND_PORT: ${BACKEND_PORT:-8080}
+      BACKEND_HOST: ${BACKEND_HOST:-0.0.0.0}
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - cvgen-dev-network
+
+  # ================================
+  # React Frontend (Development - with Vite HMR)
+  # ================================
+  frontend:
+    build:
+      context: ../frontend
+      target: dev
+    container_name: cvgen-dev-frontend
+    restart: unless-stopped
+    volumes:
+      - ../frontend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:8080}
+      VITE_CLERK_PUBLISHABLE_KEY: ${VITE_CLERK_PUBLISHABLE_KEY:-}
+    depends_on:
+      - backend
+    networks:
+      - cvgen-dev-network
+
+networks:
+  cvgen-dev-network:
+    name: cvgen-dev-network
+    driver: bridge
+
+volumes:
+  dev_postgres_data:
+    name: cvgen-dev-postgres-data
+  dev_go_modules:
+    name: cvgen-dev-go-modules

@@ -1,0 +1,127 @@
+# Production Docker Compose for CV-Gen
+# Domain: cv.aidityas.me
+# Architecture: Pure Caddy (no Nginx)
+# Usage: cd deploy/prod && cp .env.example .env && make prod-up
+
+services:
+  # ================================
+  # PostgreSQL Database
+  # ================================
+  db:
+    image: postgres:16-alpine
+    container_name: cvgen-prod-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-cvgen}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-cvgen_prod_db}
+    volumes:
+      - prod_postgres_data:/var/lib/postgresql/data
+    command: |
+      postgres
+      -c max_connections=100
+      -c shared_buffers=256MB
+      -c effective_cache_size=768MB
+      -c work_mem=16MB
+      -c maintenance_work_mem=64MB
+      -c checkpoint_completion_target=0.9
+      -c random_page_cost=1.1
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-cvgen} -d ${POSTGRES_DB:-cvgen_prod_db}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - cvgen-prod-network
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # ================================
+  # Go Backend (Production Build)
+  # ================================
+  backend:
+    build:
+      context: ../backend
+      target: prod
+    container_name: cvgen-prod-backend
+    restart: unless-stopped
+    ports:
+      - "8080"
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      BACKEND_PORT: ${BACKEND_PORT:-8080}
+      BACKEND_HOST: ${BACKEND_HOST:-0.0.0.0}
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - cvgen-prod-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8080/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+
+  # ================================
+  # Caddy Reverse Proxy + Static File Server
+  # ================================
+  caddy:
+    image: caddy:alpine
+    container_name: cvgen-prod-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ../Caddyfile:/etc/caddy/Caddyfile:ro
+      - ../frontend/dist:/srv:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - cvgen-prod-network
+    cap_add:
+      - NET_ADMIN
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+
+networks:
+  cvgen-prod-network:
+    name: cvgen-prod-network
+    driver: bridge
+
+volumes:
+  prod_postgres_data:
+    name: cvgen-prod-postgres-data
+  caddy_data:
+    name: cvgen-prod-caddy-data
+    driver: local
+  caddy_config:
+    name: cvgen-prod-caddy-config
+    driver: local
