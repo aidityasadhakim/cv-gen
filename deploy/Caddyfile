@@ -4,6 +4,9 @@
 # - Static file serving from /srv (frontend build)
 # - Reverse proxy for /api/* to backend
 #
+# IMPORTANT: For production, PostgreSQL runs on the host (not in container)
+#            so backend is accessed via localhost
+#
 # ⚠️  IMPORTANT: Ensure DNS is configured before starting
 #    Run: make prod-up or make staging-up
 
@@ -44,14 +47,13 @@ cv.aidityas.me {
         X-XSS-Protection "1; mode=block"
         Referrer-Policy "strict-origin-when-cross-origin"
         Permissions-Policy "geolocation=(), microphone=(), camera=()"
-        -Server
         -X-Powered-By
     }
 
     # Handle API requests FIRST
     @api path /api/*
     handle @api {
-        reverse_proxy backend:8080 {
+        reverse_proxy localhost:8080 {
             transport http {
                 read_buffer 8192
             }
@@ -78,7 +80,7 @@ cvstaging.aidityas.me {
     # Handle API requests FIRST
     @api path /api/*
     handle @api {
-        reverse_proxy backend:8080 {
+        reverse_proxy localhost:8080 {
             transport http {
                 read_buffer 8192
             }

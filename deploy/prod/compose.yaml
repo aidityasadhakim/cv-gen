@@ -14,22 +14,15 @@ services:
       target: prod
     container_name: cvgen-prod-backend
     restart: unless-stopped
-    ports:
-      - "8080"
+    network_mode: host
     environment:
       DATABASE_URL: ${DATABASE_URL}
       BACKEND_PORT: ${BACKEND_PORT:-8080}
       BACKEND_HOST: ${BACKEND_HOST:-0.0.0.0}
       CLERK_SECRET_KEY: ${CLERK_SECRET_KEY}
       GEMINI_API_KEY: ${GEMINI_API_KEY}
-    networks:
-      - cvgen-prod-network
-    healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://localhost:8080/api/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
+    # No ports needed - host network exposes directly
+    # No networks needed - uses host network
     deploy:
       resources:
         limits:
@@ -46,21 +39,15 @@ services:
     image: caddy:alpine
     container_name: cvgen-prod-caddy
     restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
+    network_mode: host
     volumes:
       - ../Caddyfile:/etc/caddy/Caddyfile:ro
       - ../frontend/dist:/srv:ro
       - caddy_data:/data
       - caddy_config:/config
-    depends_on:
-      backend:
-        condition: service_healthy
-    networks:
-      - cvgen-prod-network
-    cap_add:
-      - NET_ADMIN
+    # No ports needed - host network exposes 80/443 directly
+    # No networks needed - uses host network
+    # No depends_on - Caddy will retry until backend is ready
     deploy:
       resources:
         limits:
@@ -70,10 +57,8 @@ services:
           cpus: '0.1'
           memory: 64M
 
-networks:
-  cvgen-prod-network:
-    name: cvgen-prod-network
-    driver: bridge
+# No custom networks - using host network mode
+# Containers access each other via localhost
 
 volumes:
   caddy_data:
