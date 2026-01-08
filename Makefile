@@ -2,10 +2,10 @@
 	db-migrate db-rollback db-status db-reset db-shell \
 	sqlc clean clean-volumes shell-frontend frontend-install \
 	dev-up dev-down dev-logs dev-status dev-shell \
-	staging-up staging-down staging-logs staging-status staging-shell-backend staging-db-shell \
-	staging-deploy staging-restart staging-rebuild staging-migrate \
-	prod-up prod-down prod-logs prod-status prod-shell-backend prod-db-shell \
-	prod-restart prod-rebuild prod-deploy prod-migrate \
+	staging-up staging-down staging-logs staging-status staging-shell-backend \
+	staging-restart staging-rebuild staging-migrate \
+	prod-up prod-down prod-logs prod-status prod-shell-backend \
+	prod-restart prod-rebuild prod-migrate \
 	frontend-build
 
 .DEFAULT_GOAL := help
@@ -143,10 +143,6 @@ staging-status:
 staging-shell-backend:
 	cd deploy/staging && docker compose --env-file ../../.env exec backend sh
 
-## Connect to staging database
-staging-db-shell:
-	cd deploy/staging && docker compose --env-file ../../.env exec db psql -U cvgen -d cvgen_staging_db
-
 ## Restart staging service (usage: make staging-restart SERVICE=backend)
 staging-restart:
 	cd deploy/staging && docker compose --env-file ../../.env restart $(SERVICE)
@@ -154,10 +150,6 @@ staging-restart:
 ## Rebuild and restart staging service (usage: make staging-rebuild SERVICE=backend)
 staging-rebuild:
 	cd deploy/staging && docker compose --env-file ../../.env build $(SERVICE) && docker compose --env-file ../../.env up -d $(SERVICE)
-
-## Full staging deployment
-staging-deploy:
-	cd deploy/staging && docker compose --env-file ../../.env down && docker compose --env-file ../../.env up --build -d
 
 ## Run staging database migrations
 staging-migrate:
@@ -190,10 +182,6 @@ prod-status:
 prod-shell-backend:
 	cd deploy/prod && docker compose --env-file ../../.env exec backend sh
 
-## Connect to production database
-prod-db-shell:
-	cd deploy/prod && docker compose --env-file ../../.env exec db psql -U cvgen -d cvgen_prod_db
-
 ## Restart production service (usage: make prod-restart SERVICE=backend)
 prod-restart:
 	cd deploy/prod && docker compose --env-file ../../.env restart $(SERVICE)
@@ -201,12 +189,6 @@ prod-restart:
 ## Rebuild and restart production service (usage: make prod-rebuild SERVICE=backend)
 prod-rebuild:
 	cd deploy/prod && docker compose --env-file ../../.env build $(SERVICE) && docker compose --env-file ../../.env up -d $(SERVICE)
-
-## Full production deployment
-prod-deploy:
-	@echo "⚠️  Full production deployment..."
-	@echo "⚠️  This restarts all services!"
-	cd deploy/prod && docker compose --env-file ../../.env down && docker compose --env-file ../../.env up --build -d
 
 ## Run production database migrations
 prod-migrate:

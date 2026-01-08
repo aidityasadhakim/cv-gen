@@ -277,10 +277,25 @@ run_migrations() {
   source "$ENV_FILE"
   set +a
 
-  # Run migrations
-  if [ -n "$DATABASE_URL" ]; then
-    goose -dir "$migrations_dir" postgres "$DATABASE_URL" up
-    log_success "Migrations completed"
+    # Run migrations
+    if [ -n "$DATABASE_URL" ]; then
+      # Check if 'db' hostname is used (Docker internal)
+      if echo "$DATABASE_URL" | grep -q "@db:"; then
+        log_info "Detected Docker hostname 'db' - checking if we need localhost..."
+
+        # Try with 'db' first (inside Docker)
+        if goose -dir "$migrations_dir" postgres "$DATABASE_URL" up 2>/dev/null; then
+          log_success "Migrations completed (using Docker 'db' hostname)"
+        else
+          # Fallback: Replace 'db' with 'localhost' for host-based migration
+          local host_url=$(echo "$DATABASE_URL" | sed 's/@db:/@localhost:/')
+          log_info "Falling back to localhost: $host_url"
+          goose -dir "$migrations_dir" postgres "$host_url" up
+        fi
+      else
+        goose -dir "$migrations_dir" postgres "$DATABASE_URL" up
+      fi
+      log_success "Migrations completed"
   else
     log_warn "DATABASE_URL not set - skipping migrations"
     log_info "Migrations will run when the container starts"

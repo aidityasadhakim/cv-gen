@@ -1,29 +1,9 @@
 # Staging Docker Compose
 # Architecture: Pure Caddy (no Nginx)
+# PostgreSQL runs via systemd on the host (not in container)
 # Usage: cd deploy/staging && docker compose up -d
 
 services:
-  # ================================
-  # PostgreSQL Database
-  # ================================
-  db:
-    image: postgres:16-alpine
-    container_name: cvgen-staging-db
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-cvgen}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cvgen_staging_secret}
-      POSTGRES_DB: ${POSTGRES_DB:-cvgen_staging_db}
-    volumes:
-      - staging_postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-cvgen} -d ${POSTGRES_DB:-cvgen_staging_db}"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-    networks:
-      - cvgen-staging-network
-
   # ================================
   # Go Backend (Production Build)
   # ================================
@@ -36,14 +16,11 @@ services:
     ports:
       - "8080"
     environment:
-      DATABASE_URL: ${DATABASE_URL:-postgres://cvgen:cvgen_staging_secret@db:5432/cvgen_staging_db?sslmode=disable}
+      DATABASE_URL: ${DATABASE_URL}
       BACKEND_PORT: ${BACKEND_PORT:-8080}
       BACKEND_HOST: ${BACKEND_HOST:-0.0.0.0}
       CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:-}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
-    depends_on:
-      db:
-        condition: service_healthy
     networks:
       - cvgen-staging-network
     healthcheck:
@@ -82,8 +59,6 @@ networks:
     driver: bridge
 
 volumes:
-  staging_postgres_data:
-    name: cvgen-staging-postgres-data
   caddy_data:
     name: cvgen-staging-caddy-data
   caddy_config:

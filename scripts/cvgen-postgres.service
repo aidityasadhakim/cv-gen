@@ -1,0 +1,41 @@
+# PostgreSQL Systemd Service for CV-Gen
+# Install: Copy to /etc/systemd/system/cvgen-postgres.service
+# Enable: sudo systemctl enable cvgen-postgres
+# Start:  sudo systemctl start cvgen-postgres
+# Logs:   sudo journalctl -u cvgen-postgres -f
+
+[Unit]
+Description=PostgreSQL Database for CV-Gen
+Documentation=https://www.postgresql.org/docs/
+After=network.target
+
+[Service]
+Type=forking
+User=postgres
+Group=postgres
+
+# PostgreSQL configuration directory
+Environment=PGDATA=/var/lib/postgresql/16/main
+
+# Socket and port
+Environment=PGPORT=5432
+Environment=PGHOST=/var/run/postgresql
+
+# Start PostgreSQL
+ExecStart=/usr/lib/postgresql/16/bin/pg_ctl start -D ${PGDATA} -l ${PGDATA}/postgresql.log -o "-c config_file=/etc/postgresql/16/main/postgresql.conf"
+ExecStop=/usr/lib/postgresql/16/bin/pg_ctl stop -D ${PGDATA} -m fast
+ExecReload=/usr/lib/postgresql/16/bin/pg_ctl reload -D ${PGDATA}
+
+# Restart policy
+Restart=on-failure
+RestartSec=10
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+
+# Private temp directory
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
