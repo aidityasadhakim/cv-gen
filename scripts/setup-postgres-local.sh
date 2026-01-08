@@ -37,9 +37,9 @@ PG_REPO_NAME="pgdg"
 PG_REPO_URL="https://apt.postgresql.org/pub/repos/apt"
 
 # Detect project root and script directory
+# Assume user runs script from project root directory (where .env and backend/ exist)
+PROJECT_ROOT="$(pwd)"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="${SCRIPT_DIR}"
-ENV_FILE=""
 MIGRATIONS_DIR="${PROJECT_ROOT}/backend/sql/migrations"
 
 # Default values (can be overridden by .env)
